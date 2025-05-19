@@ -106,17 +106,6 @@ export default function DashboardPage() {
               time="1 day ago"
               icon={<ShoppingCart className="h-5 w-5 text-amber-500" />}
             />
-            <ActivityItem
-              title="New user joined"
-              description="Sarah Johnson (sarah@example.com)"
-              time="2 days ago"
-              icon={<Users className="h-5 w-5 text-purple-500" />}
-            />
-          </div>
-          <div className="border-t border-gray-200 px-6 py-4">
-            <Link href="/dashboard/activity" className="text-sm font-medium text-indigo-600 hover:text-indigo-500">
-              View all activity
-            </Link>
           </div>
         </div>
       </div>
@@ -138,10 +127,10 @@ export default function DashboardPage() {
           icon={<Package className="h-6 w-6" />}
         />
         <QuickActionCard
-          title="Generate Report"
-          description="Create a custom inventory report"
-          buttonText="Generate Report"
-          href="/dashboard/reports/new"
+          title="Analytics"
+          description="View your analytics and see where to improve"
+          buttonText="View Analytics"
+          href="/dashboard/analytics/"
           icon={<BarChart3 className="h-6 w-6" />}
         />
       </div>
