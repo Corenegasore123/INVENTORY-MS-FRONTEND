@@ -7,7 +7,7 @@ import type { Inventory, Product } from "@/types"
 import Card from "@/components/ui/Card"
 import Button from "@/components/ui/Button"
 
-export default function InventoryDetailsPage() {
+export default function AdminInventoryDetailsPage() {
   const params = useParams()
   const router = useRouter()
   const [inventory, setInventory] = useState<Inventory | null>(null)
@@ -17,7 +17,10 @@ export default function InventoryDetailsPage() {
   useEffect(() => {
     const fetchInventoryDetails = async () => {
       try {
-        const [inventoriesData, productsData] = await Promise.all([apiClient.getInventories(), apiClient.getProducts()])
+        const [inventoriesData, productsData] = await Promise.all([
+          apiClient.getAllInventories(),
+          apiClient.getAllProducts(),
+        ])
 
         const currentInventory = inventoriesData.find((inv) => inv.id === Number(params.id))
         const inventoryProducts = productsData.filter((product) => product.inventoryId === Number(params.id))
@@ -84,7 +87,6 @@ export default function InventoryDetailsPage() {
       <Card>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">Products in this Inventory</h2>
-          <Button onClick={() => router.push("/dashboard/products")}>Add Product</Button>
         </div>
 
         {products.length > 0 ? (
@@ -125,11 +127,7 @@ export default function InventoryDetailsPage() {
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{product.description}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => router.push(`/dashboard/products/${product.id}`)}
-                      >
+                      <Button variant="outline" size="sm" onClick={() => router.push(`/admin/products/${product.id}`)}>
                         View Details
                       </Button>
                     </td>
@@ -141,7 +139,6 @@ export default function InventoryDetailsPage() {
         ) : (
           <div className="text-center py-8">
             <p className="text-gray-500 mb-4">No products in this inventory yet</p>
-            <Button onClick={() => router.push("/dashboard/products")}>Add First Product</Button>
           </div>
         )}
       </Card>

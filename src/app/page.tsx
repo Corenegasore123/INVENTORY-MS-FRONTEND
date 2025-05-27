@@ -1,80 +1,98 @@
-import type React from "react"
 import Link from "next/link"
-import { ArrowRight, BarChart3, BoxIcon, CheckCircle, ClipboardList, Settings, Truck, Users } from "lucide-react"
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Navigation */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center">
-            <BoxIcon className="h-8 w-8 text-indigo-600" />
-            <span className="ml-2 text-xl font-bold text-gray-800">InventoryPro</span>
-          </div>
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-gray-600 hover:text-gray-900">
-              Home
-            </Link>
-            <Link href="#features" className="text-gray-600 hover:text-gray-900">
-              Features
-            </Link>
-            <Link href="#testimonials" className="text-gray-600 hover:text-gray-900">
-              Testimonials
-            </Link>
-            <Link href="#pricing" className="text-gray-600 hover:text-gray-900">
-              Pricing
-            </Link>
-          </nav>
-          <div className="flex items-center space-x-4">
-            <Link href="/auth/login" className="text-gray-600 hover:text-gray-900">
-              Login
-            </Link>
-            <Link
-              href="/auth/register"
-              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
-            >
-              Get Started
-            </Link>
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">IM</span>
+              </div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Inventory MS
+              </h1>
+            </div>
+            <nav className="hidden md:flex space-x-8">
+              <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
+                Features
+              </a>
+              <a href="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors">
+                Pricing
+              </a>
+              <a href="#testimonials" className="text-gray-600 hover:text-gray-900 transition-colors">
+                Testimonials
+              </a>
+              <a href="#contact" className="text-gray-600 hover:text-gray-900 transition-colors">
+                Contact
+              </a>
+            </nav>
+            <div className="flex space-x-4">
+              <Link
+                href="/login"
+                className="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/signup"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 px-6 py-2 rounded-lg text-sm font-medium transition-all transform hover:scale-105 shadow-lg"
+              >
+                Get Started
+              </Link>
+            </div>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-indigo-600 to-purple-700 py-20">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center">
-            <div className="md:w-1/2 mb-10 md:mb-0">
-              <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight mb-6">
-                Streamline Your Inventory Management
-              </h1>
-              <p className="text-xl text-indigo-100 mb-8">
-                Track, manage, and optimize your inventory with our powerful and intuitive platform. Save time, reduce
-                costs, and grow your business.
-              </p>
-              <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-                <Link
-                  href="/auth/register"
-                  className="bg-white text-indigo-600 px-6 py-3 rounded-md font-medium hover:bg-gray-100 transition-colors text-center"
-                >
-                  Start Free Trial
-                </Link>
-                <Link
-                  href="#demo"
-                  className="border border-white text-white px-6 py-3 rounded-md font-medium hover:bg-white hover:bg-opacity-10 transition-colors text-center"
-                >
-                  Watch Demo
-                </Link>
-              </div>
+      <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
+          <div className="text-center">
+            <div className="mb-8">
+              <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800 mb-6">
+                🚀 Trusted by 10,000+ businesses worldwide
+              </span>
             </div>
-            <div className="md:w-1/2">
-              <div className="relative">
-                <div className="absolute -top-4 -left-4 w-full h-full bg-indigo-500 rounded-lg"></div>
-                <img
-                  src="/invdash.png"
-                  alt="Inventory Management Dashboard"
-                  className="relative rounded-lg shadow-xl border-4 border-white"
-                />
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-8 leading-tight">
+              Inventory Management
+              <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Made Simple
+              </span>
+            </h1>
+            <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-4xl mx-auto leading-relaxed">
+              Transform your business with our powerful, intuitive inventory management platform. Track products, manage
+              stock levels, and optimize your operations with real-time insights.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+              <Link
+                href="/signup"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 px-8 py-4 rounded-xl text-lg font-semibold transition-all transform hover:scale-105 shadow-xl hover:shadow-2xl"
+              >
+                Start Free Trial
+              </Link>
+              <Link
+                href="/login"
+                className="border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 px-8 py-4 rounded-xl text-lg font-semibold transition-all"
+              >
+                Watch Demo
+              </Link>
+            </div>
+            <div className="mt-12 flex justify-center items-center space-x-8 text-sm text-gray-500">
+              <div className="flex items-center space-x-2">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span>No credit card required</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span>14-day free trial</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span>Cancel anytime</span>
               </div>
             </div>
           </div>
@@ -82,24 +100,24 @@ export default function LandingPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-12 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-indigo-600">5,000+</p>
-              <p className="text-gray-600 mt-2">Businesses</p>
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div>
+              <div className="text-4xl font-bold text-blue-600 mb-2">10K+</div>
+              <div className="text-gray-600">Active Users</div>
             </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-indigo-600">10M+</p>
-              <p className="text-gray-600 mt-2">Products Tracked</p>
+            <div>
+              <div className="text-4xl font-bold text-purple-600 mb-2">1M+</div>
+              <div className="text-gray-600">Products Tracked</div>
             </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-indigo-600">99.9%</p>
-              <p className="text-gray-600 mt-2">Uptime</p>
+            <div>
+              <div className="text-4xl font-bold text-green-600 mb-2">99.9%</div>
+              <div className="text-gray-600">Uptime</div>
             </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-indigo-600">24/7</p>
-              <p className="text-gray-600 mt-2">Support</p>
+            <div>
+              <div className="text-4xl font-bold text-orange-600 mb-2">24/7</div>
+              <div className="text-gray-600">Support</div>
             </div>
           </div>
         </div>
@@ -107,413 +125,423 @@ export default function LandingPage() {
 
       {/* Features Section */}
       <section id="features" className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Powerful Features</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Everything you need to manage your inventory efficiently
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Everything you need to manage inventory</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Powerful features designed to streamline your inventory management and boost your business efficiency
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <FeatureCard
-              icon={<BoxIcon className="h-10 w-10 text-indigo-600" />}
-              title="Inventory Tracking"
-              description="Track inventory levels across multiple locations with real-time updates and alerts."
-            />
-            <FeatureCard
-              icon={<ClipboardList className="h-10 w-10 text-indigo-600" />}
-              title="Product Management"
-              description="Manage product details, categories, and variants with ease."
-            />
-            <FeatureCard
-              icon={<BarChart3 className="h-10 w-10 text-indigo-600" />}
-              title="Analytics & Reports"
-              description="Gain insights with powerful analytics and customizable reports."
-            />
-            <FeatureCard
-              icon={<Truck className="h-10 w-10 text-indigo-600" />}
-              title="Order Management"
-              description="Track orders, manage fulfillment, and update inventory automatically."
-            />
-            <FeatureCard
-              icon={<Users className="h-10 w-10 text-indigo-600" />}
-              title="User Permissions"
-              description="Control access with role-based permissions for your team members."
-            />
-            <FeatureCard
-              icon={<Settings className="h-10 w-10 text-indigo-600" />}
-              title="Customizable"
-              description="Tailor the system to your specific business needs and workflows."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">How It Works</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Get started in minutes with our simple onboarding process
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-indigo-100 text-indigo-600 text-xl font-bold mb-4">
-                1
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6">
+                <span className="text-3xl">📦</span>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Sign Up</h3>
-              <p className="text-gray-600">Create your account and set up your company profile.</p>
+              <h3 className="text-xl font-semibold mb-4 text-gray-900">Real-time Inventory Tracking</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Monitor your stock levels in real-time across multiple locations. Get instant alerts when items are
+                running low and never run out of stock again.
+              </p>
             </div>
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-indigo-100 text-indigo-600 text-xl font-bold mb-4">
-                2
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Import Data</h3>
-              <p className="text-gray-600">Import your existing inventory data or start from scratch.</p>
-            </div>
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-indigo-100 text-indigo-600 text-xl font-bold mb-4">
-                3
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Start Managing</h3>
-              <p className="text-gray-600">Begin tracking and optimizing your inventory right away.</p>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Testimonials */}
-      <section id="testimonials" className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">What Our Customers Say</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">Trusted by thousands of businesses worldwide</p>
-          </div>
+            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
+              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl flex items-center justify-center mb-6">
+                <span className="text-3xl">🏷️</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-4 text-gray-900">Smart Product Management</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Organize products with categories, tags, and custom fields. Bulk import/export capabilities and barcode
+                scanning for efficient management.
+              </p>
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <TestimonialCard
-              quote="InventoryPro has transformed how we manage our warehouse. We've reduced stockouts by 75% and improved efficiency across the board."
-              author="Sarah Johnson"
-              company="Retail Solutions Inc."
-            />
-            <TestimonialCard
-              quote="The analytics features alone are worth the investment. We now have real-time insights into our inventory that have helped us make better business decisions."
-              author="Michael Chen"
-              company="Global Distributors"
-            />
-            <TestimonialCard
-              quote="Customer support is exceptional. Any time we've had questions, the team has been quick to respond and incredibly helpful."
-              author="Jessica Martinez"
-              company="Artisan Crafts Co."
-            />
+            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
+              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6">
+                <span className="text-3xl">📊</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-4 text-gray-900">Advanced Analytics</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Get detailed insights with customizable reports and dashboards. Track trends, forecast demand, and make
+                data-driven decisions.
+              </p>
+            </div>
+
+            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
+              <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mb-6">
+                <span className="text-3xl">🔄</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-4 text-gray-900">Automated Workflows</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Set up automatic reorder points, supplier notifications, and workflow triggers to streamline your
+                operations and save time.
+              </p>
+            </div>
+
+            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
+              <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-red-600 rounded-2xl flex items-center justify-center mb-6">
+                <span className="text-3xl">👥</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-4 text-gray-900">Team Collaboration</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Manage user permissions, assign roles, and collaborate with your team. Track who made changes and when
+                for complete accountability.
+              </p>
+            </div>
+
+            <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow">
+              <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-6">
+                <span className="text-3xl">🔗</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-4 text-gray-900">Seamless Integrations</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Connect with your existing tools and platforms. API access, webhooks, and pre-built integrations with
+                popular business software.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Pricing Section */}
       <section id="pricing" className="py-20 bg-white">
-        <div className="container mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">Choose the plan that's right for your business</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Simple, transparent pricing</h2>
+            <p className="text-xl text-gray-600">Choose the plan that fits your business needs</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <PricingCard
-              title="Starter"
-              price="$49"
-              period="per month"
-              description="Perfect for small businesses just getting started"
-              features={[
-                "Up to 1,000 products",
-                "2 user accounts",
-                "Basic reporting",
-                "Email support",
-                "1 inventory location",
-              ]}
-              buttonText="Start Free Trial"
-              buttonLink="/auth/register"
-              highlighted={false}
-            />
-            <PricingCard
-              title="Professional"
-              price="$99"
-              period="per month"
-              description="Ideal for growing businesses with multiple locations"
-              features={[
-                "Up to 10,000 products",
-                "10 user accounts",
-                "Advanced reporting",
-                "Priority email support",
-                "5 inventory locations",
-                "API access",
-              ]}
-              buttonText="Start Free Trial"
-              buttonLink="/auth/register"
-              highlighted={true}
-            />
-            <PricingCard
-              title="Enterprise"
-              price="$249"
-              period="per month"
-              description="For large businesses with complex inventory needs"
-              features={[
-                "Unlimited products",
-                "Unlimited user accounts",
-                "Custom reporting",
-                "24/7 phone & email support",
-                "Unlimited inventory locations",
-                "API access",
-                "Dedicated account manager",
-              ]}
-              buttonText="Contact Sales"
-              buttonLink="/contact"
-              highlighted={false}
-            />
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-blue-300 transition-colors">
+              <div className="text-center">
+                <h3 className="text-2xl font-semibold mb-4 text-gray-900">Starter</h3>
+                <div className="mb-6">
+                  <span className="text-4xl font-bold text-gray-900">$29</span>
+                  <span className="text-gray-600">/month</span>
+                </div>
+                <ul className="space-y-4 mb-8 text-left">
+                  <li className="flex items-center space-x-3">
+                    <span className="w-5 h-5 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm">
+                      ✓
+                    </span>
+                    <span className="text-gray-700">Up to 1,000 products</span>
+                  </li>
+                  <li className="flex items-center space-x-3">
+                    <span className="w-5 h-5 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm">
+                      ✓
+                    </span>
+                    <span className="text-gray-700">5 inventory locations</span>
+                  </li>
+                  <li className="flex items-center space-x-3">
+                    <span className="w-5 h-5 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm">
+                      ✓
+                    </span>
+                    <span className="text-gray-700">Basic reporting</span>
+                  </li>
+                  <li className="flex items-center space-x-3">
+                    <span className="w-5 h-5 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm">
+                      ✓
+                    </span>
+                    <span className="text-gray-700">Email support</span>
+                  </li>
+                </ul>
+                <Link
+                  href="/signup"
+                  className="w-full bg-gray-900 text-white hover:bg-gray-800 py-3 rounded-lg font-semibold transition-colors block text-center"
+                >
+                  Get Started
+                </Link>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-blue-600 to-purple-600 text-white rounded-2xl p-8 transform scale-105 shadow-xl">
+              <div className="text-center">
+                <div className="bg-white text-blue-600 px-4 py-1 rounded-full text-sm font-semibold mb-4 inline-block">
+                  Most Popular
+                </div>
+                <h3 className="text-2xl font-semibold mb-4">Professional</h3>
+                <div className="mb-6">
+                  <span className="text-4xl font-bold">$79</span>
+                  <span className="text-blue-100">/month</span>
+                </div>
+                <ul className="space-y-4 mb-8 text-left">
+                  <li className="flex items-center space-x-3">
+                    <span className="w-5 h-5 bg-white text-blue-600 rounded-full flex items-center justify-center text-sm">
+                      ✓
+                    </span>
+                    <span>Up to 10,000 products</span>
+                  </li>
+                  <li className="flex items-center space-x-3">
+                    <span className="w-5 h-5 bg-white text-blue-600 rounded-full flex items-center justify-center text-sm">
+                      ✓
+                    </span>
+                    <span>Unlimited locations</span>
+                  </li>
+                  <li className="flex items-center space-x-3">
+                    <span className="w-5 h-5 bg-white text-blue-600 rounded-full flex items-center justify-center text-sm">
+                      ✓
+                    </span>
+                    <span>Advanced analytics</span>
+                  </li>
+                  <li className="flex items-center space-x-3">
+                    <span className="w-5 h-5 bg-white text-blue-600 rounded-full flex items-center justify-center text-sm">
+                      ✓
+                    </span>
+                    <span>Priority support</span>
+                  </li>
+                  <li className="flex items-center space-x-3">
+                    <span className="w-5 h-5 bg-white text-blue-600 rounded-full flex items-center justify-center text-sm">
+                      ✓
+                    </span>
+                    <span>API access</span>
+                  </li>
+                </ul>
+                <Link
+                  href="/signup"
+                  className="w-full bg-white text-blue-600 hover:bg-gray-100 py-3 rounded-lg font-semibold transition-colors block text-center"
+                >
+                  Get Started
+                </Link>
+              </div>
+            </div>
+
+            <div className="bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-blue-300 transition-colors">
+              <div className="text-center">
+                <h3 className="text-2xl font-semibold mb-4 text-gray-900">Enterprise</h3>
+                <div className="mb-6">
+                  <span className="text-4xl font-bold text-gray-900">$199</span>
+                  <span className="text-gray-600">/month</span>
+                </div>
+                <ul className="space-y-4 mb-8 text-left">
+                  <li className="flex items-center space-x-3">
+                    <span className="w-5 h-5 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm">
+                      ✓
+                    </span>
+                    <span className="text-gray-700">Unlimited products</span>
+                  </li>
+                  <li className="flex items-center space-x-3">
+                    <span className="w-5 h-5 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm">
+                      ✓
+                    </span>
+                    <span className="text-gray-700">Unlimited locations</span>
+                  </li>
+                  <li className="flex items-center space-x-3">
+                    <span className="w-5 h-5 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm">
+                      ✓
+                    </span>
+                    <span className="text-gray-700">Custom integrations</span>
+                  </li>
+                  <li className="flex items-center space-x-3">
+                    <span className="w-5 h-5 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm">
+                      ✓
+                    </span>
+                    <span className="text-gray-700">24/7 phone support</span>
+                  </li>
+                  <li className="flex items-center space-x-3">
+                    <span className="w-5 h-5 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm">
+                      ✓
+                    </span>
+                    <span className="text-gray-700">Dedicated account manager</span>
+                  </li>
+                </ul>
+                <Link
+                  href="/signup"
+                  className="w-full bg-gray-900 text-white hover:bg-gray-800 py-3 rounded-lg font-semibold transition-colors block text-center"
+                >
+                  Contact Sales
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section id="testimonials" className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Loved by businesses worldwide</h2>
+            <p className="text-xl text-gray-600">See what our customers have to say about Inventory MS</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-white p-8 rounded-2xl shadow-lg">
+              <div className="flex items-center mb-4">
+                <div className="flex text-yellow-400">
+                  <span>⭐⭐⭐⭐⭐</span>
+                </div>
+              </div>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                "Inventory MS has completely transformed how we manage our warehouse. The real-time tracking and
+                automated alerts have saved us countless hours and prevented stockouts."
+              </p>
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
+                  JS
+                </div>
+                <div className="ml-4">
+                  <div className="font-semibold text-gray-900">John Smith</div>
+                  <div className="text-gray-500 text-sm">Operations Manager, TechCorp</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-8 rounded-2xl shadow-lg">
+              <div className="flex items-center mb-4">
+                <div className="flex text-yellow-400">
+                  <span>⭐⭐⭐⭐⭐</span>
+                </div>
+              </div>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                "The analytics and reporting features are incredible. We can now make data-driven decisions about our
+                inventory and have improved our efficiency by 40%."
+              </p>
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
+                  MJ
+                </div>
+                <div className="ml-4">
+                  <div className="font-semibold text-gray-900">Maria Johnson</div>
+                  <div className="text-gray-500 text-sm">CEO, RetailPlus</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-8 rounded-2xl shadow-lg">
+              <div className="flex items-center mb-4">
+                <div className="flex text-yellow-400">
+                  <span>⭐⭐⭐⭐⭐</span>
+                </div>
+              </div>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                "Easy to use, powerful features, and excellent customer support. We migrated from our old system in just
+                one week and haven't looked back since."
+              </p>
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold">
+                  DL
+                </div>
+                <div className="ml-4">
+                  <div className="font-semibold text-gray-900">David Lee</div>
+                  <div className="text-gray-500 text-sm">Warehouse Manager, LogiFlow</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-indigo-600">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-white mb-6">Ready to optimize your inventory?</h2>
-          <p className="text-xl text-indigo-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of businesses that trust InventoryPro to manage their inventory efficiently.
+      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-4xl font-bold text-white mb-6">Ready to transform your inventory management?</h2>
+          <p className="text-xl text-blue-100 mb-10 max-w-3xl mx-auto">
+            Join thousands of businesses that trust Inventory MS to streamline their operations and boost efficiency.
+            Start your free trial today!
           </p>
-          <Link
-            href="/auth/register"
-            className="bg-white text-indigo-600 px-8 py-4 rounded-md font-medium hover:bg-gray-100 transition-colors inline-flex items-center"
-          >
-            Get Started Now
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+            <Link
+              href="/signup"
+              className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-xl text-lg font-semibold transition-all transform hover:scale-105 shadow-xl"
+            >
+              Start Free Trial
+            </Link>
+            <Link
+              href="/login"
+              className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 rounded-xl text-lg font-semibold transition-all"
+            >
+              Schedule Demo
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-800 text-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center mb-4">
-                <BoxIcon className="h-8 w-8 text-indigo-400" />
-                <span className="ml-2 text-xl font-bold">InventoryPro</span>
+      <footer id="contact" className="bg-gray-900 text-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div className="md:col-span-2">
+              <div className="flex items-center space-x-2 mb-6">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">IM</span>
+                </div>
+                <h3 className="text-2xl font-bold">Inventory MS</h3>
               </div>
-              <p className="text-gray-400">
-                Streamline your inventory management with our powerful and intuitive platform.
+              <p className="text-gray-400 mb-6 max-w-md">
+                The most powerful and intuitive inventory management platform for modern businesses. Streamline your
+                operations and boost efficiency today.
               </p>
-              <div className="mt-4 flex space-x-4">
-                <a href="#" className="text-gray-400 hover:text-white">
-                  <span className="sr-only">Twitter</span>
-                  <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
-                  </svg>
+              <div className="flex space-x-4">
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  Twitter
                 </a>
-                <a href="#" className="text-gray-400 hover:text-white">
-                  <span className="sr-only">LinkedIn</span>
-                  <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-                  </svg>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  LinkedIn
                 </a>
-                <a href="#" className="text-gray-400 hover:text-white">
-                  <span className="sr-only">Facebook</span>
-                  <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path
-                      fillRule="evenodd"
-                      d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                  Facebook
                 </a>
               </div>
             </div>
+
             <div>
-              <h3 className="text-lg font-semibold mb-4">Product</h3>
-              <ul className="space-y-2">
+              <h4 className="text-lg font-semibold mb-6">Product</h4>
+              <ul className="space-y-4 text-gray-400">
                 <li>
-                  <Link href="#" className="text-gray-400 hover:text-white">
+                  <a href="#" className="hover:text-white transition-colors">
                     Features
-                  </Link>
+                  </a>
                 </li>
                 <li>
-                  <Link href="#" className="text-gray-400 hover:text-white">
+                  <a href="#" className="hover:text-white transition-colors">
                     Pricing
-                  </Link>
+                  </a>
                 </li>
                 <li>
-                  <Link href="#" className="text-gray-400 hover:text-white">
+                  <a href="#" className="hover:text-white transition-colors">
                     Integrations
-                  </Link>
+                  </a>
                 </li>
                 <li>
-                  <Link href="#" className="text-gray-400 hover:text-white">
-                    Changelog
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Resources</h3>
-              <ul className="space-y-2">
-                <li>
-                  <Link href="#" className="text-gray-400 hover:text-white">
-                    Documentation
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="text-gray-400 hover:text-white">
-                    Guides
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="text-gray-400 hover:text-white">
-                    API Reference
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="text-gray-400 hover:text-white">
-                    Blog
-                  </Link>
+                  <a href="#" className="hover:text-white transition-colors">
+                    API
+                  </a>
                 </li>
               </ul>
             </div>
+
             <div>
-              <h3 className="text-lg font-semibold mb-4">Company</h3>
-              <ul className="space-y-2">
+              <h4 className="text-lg font-semibold mb-6">Support</h4>
+              <ul className="space-y-4 text-gray-400">
                 <li>
-                  <Link href="#" className="text-gray-400 hover:text-white">
-                    About
-                  </Link>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Help Center
+                  </a>
                 </li>
                 <li>
-                  <Link href="#" className="text-gray-400 hover:text-white">
-                    Careers
-                  </Link>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Contact Us
+                  </a>
                 </li>
                 <li>
-                  <Link href="#" className="text-gray-400 hover:text-white">
-                    Contact
-                  </Link>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Status
+                  </a>
                 </li>
                 <li>
-                  <Link href="#" className="text-gray-400 hover:text-white">
-                    Privacy Policy
-                  </Link>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Security
+                  </a>
                 </li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-700 mt-12 pt-8 text-center text-gray-400">
-            <p>&copy; {new Date().getFullYear()} InventoryPro. All rights reserved.</p>
+
+          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+            <p>© 2025 Inventory Management System. All rights reserved.</p>
           </div>
         </div>
       </footer>
-    </div>
-  )
-}
-
-function FeatureCard({
-  icon,
-  title,
-  description,
-}: {
-  icon: React.ReactNode
-  title: string
-  description: string
-}) {
-  return (
-    <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-100">
-      <div className="mb-4 inline-flex items-center justify-center h-12 w-12 rounded-md bg-indigo-100">{icon}</div>
-      <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
-      <p className="text-gray-600">{description}</p>
-    </div>
-  )
-}
-
-function TestimonialCard({
-  quote,
-  author,
-  company,
-}: {
-  quote: string
-  author: string
-  company: string
-}) {
-  return (
-    <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
-      <div className="mb-4 text-indigo-600">
-        <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-        </svg>
-      </div>
-      <p className="text-gray-600 mb-4">{quote}</p>
-      <div>
-        <p className="font-semibold text-gray-900">{author}</p>
-        <p className="text-gray-500 text-sm">{company}</p>
-      </div>
-    </div>
-  )
-}
-
-function PricingCard({
-  title,
-  price,
-  period,
-  description,
-  features,
-  buttonText,
-  buttonLink,
-  highlighted,
-}: {
-  title: string
-  price: string
-  period: string
-  description: string
-  features: string[]
-  buttonText: string
-  buttonLink: string
-  highlighted: boolean
-}) {
-  return (
-    <div
-      className={`rounded-lg overflow-hidden ${
-        highlighted ? "border-2 border-indigo-600 shadow-xl scale-105 z-10" : "border border-gray-200 shadow-md"
-      }`}
-    >
-      {highlighted && <div className="bg-indigo-600 text-white text-center py-2 text-sm font-medium">Most Popular</div>}
-      <div className="p-6 bg-white">
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
-        <div className="mb-4">
-          <span className="text-4xl font-bold text-gray-900">{price}</span>
-          <span className="text-gray-500 ml-2">{period}</span>
-        </div>
-        <p className="text-gray-600 mb-6">{description}</p>
-        <Link
-          href={buttonLink}
-          className={`block w-full text-center py-2 px-4 rounded-md font-medium ${
-            highlighted
-              ? "bg-indigo-600 text-white hover:bg-indigo-700"
-              : "bg-white text-indigo-600 border border-indigo-600 hover:bg-indigo-50"
-          } transition-colors`}
-        >
-          {buttonText}
-        </Link>
-      </div>
-      <div className="p-6 bg-gray-50 border-t border-gray-200">
-        <ul className="space-y-3">
-          {features.map((feature, index) => (
-            <li key={index} className="flex items-start">
-              <CheckCircle className="h-5 w-5 text-indigo-600 mr-2 flex-shrink-0 mt-0.5" />
-              <span className="text-gray-600">{feature}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
     </div>
   )
 }

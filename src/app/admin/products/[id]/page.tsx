@@ -1,53 +1,32 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { apiClient } from "@/lib/api"
-import type { Product, Inventory, ProductDTO } from "@/types"
+import type { Product, Inventory } from "@/types"
 import Card from "@/components/ui/Card"
 import Button from "@/components/ui/Button"
-import Input from "@/components/ui/Input"
-import Modal from "@/components/ui/Modal"
 
-export default function ProductDetailsPage() {
+export default function AdminProductDetailsPage() {
   const params = useParams()
   const router = useRouter()
   const [product, setProduct] = useState<Product | null>(null)
   const [inventory, setInventory] = useState<Inventory | null>(null)
-  const [inventories, setInventories] = useState<Inventory[]>([])
   const [loading, setLoading] = useState(true)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [formData, setFormData] = useState<ProductDTO>({
-    name: "",
-    price: 0,
-    quantity: 0,
-    description: "",
-    inventoryId: 0,
-  })
 
   useEffect(() => {
     const fetchProductDetails = async () => {
       try {
-        const [productsData, inventoriesData] = await Promise.all([apiClient.getProducts(), apiClient.getInventories()])
+        const [productsData, inventoriesData] = await Promise.all([
+          apiClient.getAllProducts(),
+          apiClient.getAllInventories(),
+        ])
 
         const currentProduct = productsData.find((prod) => prod.id === Number(params.id))
         const productInventory = inventoriesData.find((inv) => inv.id === currentProduct?.inventoryId)
 
         setProduct(currentProduct || null)
         setInventory(productInventory || null)
-        setInventories(inventoriesData)
-
-        if (currentProduct) {
-          setFormData({
-            name: currentProduct.name,
-            price: currentProduct.price,
-            quantity: currentProduct.quantity,
-            description: currentProduct.description,
-            inventoryId: currentProduct.inventoryId,
-          })
-        }
       } catch (error) {
         console.error("Failed to fetch product details:", error)
       } finally {
@@ -59,33 +38,6 @@ export default function ProductDetailsPage() {
       fetchProductDetails()
     }
   }, [params.id])
-
-  const handleEdit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!product) return
-
-    try {
-      await apiClient.updateProduct(product.id, formData)
-      setIsEditModalOpen(false)
-      // Refresh product data
-      window.location.reload()
-    } catch (error) {
-      console.error("Failed to update product:", error)
-    }
-  }
-
-  const handleDelete = async () => {
-    if (!product) return
-
-    if (confirm("Are you sure you want to delete this product?")) {
-      try {
-        await apiClient.deleteProduct(product.id)
-        router.push("/dashboard/products")
-      } catch (error) {
-        console.error("Failed to delete product:", error)
-      }
-    }
-  }
 
   if (loading) {
     return <div className="text-center py-8">Loading product details...</div>
@@ -107,15 +59,9 @@ export default function ProductDetailsPage() {
           <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
           <p className="text-gray-600">${product.price}</p>
         </div>
-        <div className="flex space-x-4">
-          <Button onClick={() => setIsEditModalOpen(true)}>Edit Product</Button>
-          <Button onClick={handleDelete} variant="danger">
-            Delete Product
-          </Button>
-          <Button onClick={() => router.back()} variant="outline">
-            Back
-          </Button>
-        </div>
+        <Button onClick={() => router.back()} variant="outline">
+          Back
+        </Button>
       </div>
 
       {/* Product Information */}
@@ -200,64 +146,6 @@ export default function ProductDetailsPage() {
           </div>
         </Card>
       </div>
-
-      {/* Edit Modal */}
-      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Edit Product">
-        <form onSubmit={handleEdit}>
-          <Input
-            label="Name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-          />
-          <Input
-            label="Price"
-            type="number"
-            step="0.01"
-            value={formData.price}
-            onChange={(e) => setFormData({ ...formData, price: Number.parseFloat(e.target.value) })}
-            required
-          />
-          <Input
-            label="Quantity"
-            type="number"
-            value={formData.quantity}
-            onChange={(e) => setFormData({ ...formData, quantity: Number.parseInt(e.target.value) })}
-            required
-          />
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-            <textarea
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              rows={3}
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Inventory</label>
-            <select
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              value={formData.inventoryId}
-              onChange={(e) => setFormData({ ...formData, inventoryId: Number.parseInt(e.target.value) })}
-              required
-            >
-              {inventories.map((inventory) => (
-                <option key={inventory.id} value={inventory.id}>
-                  {inventory.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex justify-end space-x-4 mt-6">
-            <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit">Update Product</Button>
-          </div>
-        </form>
-      </Modal>
     </div>
   )
 }
