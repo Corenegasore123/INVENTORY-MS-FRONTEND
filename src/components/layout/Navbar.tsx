@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { logout, isAdmin, getUserRoles } from "@/lib/auth"
+import { logout, isAdmin, getUserRoles, getUserData } from "@/lib/auth"
 
 interface NavbarProps {
   title: string
@@ -9,20 +9,39 @@ interface NavbarProps {
 
 export default function Navbar({ title }: NavbarProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const [userInitials, setUserInitials] = useState("U")
-  const [userName, setUserName] = useState("User")
+  const [userInitials, setUserInitials] = useState("")
+  const [userName, setUserName] = useState("")
   const userIsAdmin = isAdmin()
 
   useEffect(() => {
-    // In a real app, you'd fetch user data from the API
-    // For now, we'll use placeholder data based on role
-    const roles = getUserRoles()
-    if (roles.includes("ADMIN")) {
-      setUserName("Admin User")
-      setUserInitials("AU")
+    // Get user data from localStorage
+    const userData = getUserData()
+
+    if (userData) {
+      // Set user name from stored data
+      const fullName = `${userData.firstName} ${userData.lastName}`.trim()
+      setUserName(fullName || userData.email)
+
+      // Generate initials from name
+      if (userData.firstName && userData.lastName) {
+        setUserInitials(`${userData.firstName.charAt(0)}${userData.lastName.charAt(0)}`)
+      } else if (userData.firstName) {
+        setUserInitials(userData.firstName.charAt(0))
+      } else if (userData.email) {
+        setUserInitials(userData.email.charAt(0).toUpperCase())
+      } else {
+        setUserInitials("U")
+      }
     } else {
-      setUserName("John Doe")
-      setUserInitials("JD")
+      // Fallback if no user data is available
+      const roles = getUserRoles()
+      if (roles.includes("ADMIN")) {
+        setUserName("Admin User")
+        setUserInitials("AU")
+      } else {
+        setUserName("User")
+        setUserInitials("U")
+      }
     }
   }, [])
 

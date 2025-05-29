@@ -48,12 +48,25 @@ export default function SignupPage() {
     }
 
     try {
-      await apiClient.register({
+      const newUser = await apiClient.register({
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
         password: formData.password,
       })
+
+      // Store the new user data temporarily for the redirect
+      const userData = {
+        id: newUser.id,
+        email: newUser.email,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        roles: newUser.roles || ["USER"],
+        createdAt: newUser.createdAt || new Date().toISOString(),
+      }
+
+      // Store in localStorage temporarily
+      localStorage.setItem("tempUserData", JSON.stringify(userData))
 
       showToast("Account created successfully! Redirecting to login...", "success")
 

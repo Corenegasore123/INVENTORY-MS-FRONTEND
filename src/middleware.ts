@@ -30,17 +30,23 @@ export function middleware(request: NextRequest) {
       const roles = JSON.parse(userRoles)
       const isAdmin = roles.includes("ADMIN")
 
-      // Admin trying to access user routes - redirect to admin
-      if (isAdmin && pathname.startsWith("/dashboard") && !pathname.startsWith("/dashboard")) {
-        console.log("Admin accessing user route, redirecting to admin")
-        return NextResponse.redirect(new URL("/admin", request.url))
-      }
+      console.log("Parsed roles:", roles)
+      console.log("Is admin:", isAdmin)
 
       // Non-admin trying to access admin routes - redirect to dashboard
       if (!isAdmin && pathname.startsWith("/admin")) {
         console.log("Non-admin accessing admin route, redirecting to dashboard")
         return NextResponse.redirect(new URL("/dashboard", request.url))
       }
+
+      // Admin trying to access user dashboard root - redirect to admin
+      if (isAdmin && pathname === "/dashboard") {
+        console.log("Admin accessing user dashboard root, redirecting to admin")
+        return NextResponse.redirect(new URL("/admin", request.url))
+      }
+
+      // Allow access to the requested route
+      return NextResponse.next()
     } catch (error) {
       console.error("Error parsing roles:", error)
       return NextResponse.redirect(new URL("/login", request.url))

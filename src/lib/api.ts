@@ -1,4 +1,14 @@
-import type { LoginDTO, AuthResponse, UserDTO, User, Inventory, InventoryDTO, Product, ProductDTO } from "@/types"
+import type {
+  LoginDTO,
+  AuthResponse,
+  UserDTO,
+  User,
+  Inventory,
+  InventoryDTO,
+  Product,
+  ProductDTO,
+  UserProfile,
+} from "@/types"
 
 const API_BASE_URL = "http://localhost:8081/api"
 
@@ -42,10 +52,25 @@ class ApiClient {
   // Auth endpoints
   async login(credentials: LoginDTO): Promise<AuthResponse> {
     console.log("Attempting login with credentials:", credentials)
-    return this.request("/auth/login", {
+    const response = await this.request<AuthResponse>("/auth/login", {
       method: "POST",
       body: JSON.stringify(credentials),
     })
+
+    console.log("Login API response:", response)
+
+    // Ensure we have user data in the response
+    if (!response.user) {
+      console.warn("No user data in login response, creating minimal user object")
+      response.user = {
+        id: 0,
+        email: credentials.email,
+        firstName: "",
+        lastName: "",
+      }
+    }
+
+    return response
   }
 
   async register(userData: UserDTO): Promise<User> {
@@ -62,6 +87,25 @@ class ApiClient {
 
   async getAllUsers(): Promise<User[]> {
     return this.request("/auth/users")
+  }
+
+  // User profile endpoints
+  async getUserProfile(): Promise<UserProfile> {
+    return this.request("/users/profile")
+  }
+
+  async updateUserProfile(data: Partial<UserProfile>): Promise<UserProfile> {
+    return this.request("/users/profile", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    })
+  }
+
+  async updatePassword(currentPassword: string, newPassword: string): Promise<{ success: boolean }> {
+    return this.request("/users/password", {
+      method: "PUT",
+      body: JSON.stringify({ currentPassword, newPassword }),
+    })
   }
 
   // Admin endpoints

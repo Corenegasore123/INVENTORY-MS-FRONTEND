@@ -7,6 +7,16 @@ export interface User {
   createdAt: string
 }
 
+export interface UserProfile {
+  id: number
+  email: string
+  firstName: string
+  lastName: string
+  roles: string[]
+  createdAt: string
+  lastLogin?: string
+}
+
 export interface Inventory {
   id: number
   name: string
@@ -55,6 +65,13 @@ export interface ProductDTO {
 export interface AuthResponse {
   token: string
   roles: string[]
+  user: {
+    id: number
+    email: string
+    firstName: string
+    lastName: string
+    createdAt?: string
+  }
 }
 
 export interface DashboardStats {
@@ -62,4 +79,14 @@ export interface DashboardStats {
   totalProducts: number
   totalUsers?: number
   lowStockProducts: number
+}
+
+export interface RecentActivity {
+  id: string
+  type: "inventory_created" | "product_created" | "inventory_updated" | "product_updated"
+  title: string
+  description: string
+  timestamp: string
+  icon: string
+  color: string
 }

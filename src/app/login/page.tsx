@@ -6,7 +6,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { apiClient } from "@/lib/api"
-import { setToken, setUserRoles } from "@/lib/auth"
+import { setToken, setUserRoles, setUserData } from "@/lib/auth"
 import Input from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
 import Toast from "@/components/ui/Toast"
@@ -32,8 +32,43 @@ export default function LoginPage() {
       setToken(response.token)
       setUserRoles(response.roles)
 
-      console.log("Token stored:", response.token)
-      console.log("Roles stored:", response.roles)
+      // Check if we have temp user data from signup
+      const tempUserData = localStorage.getItem("tempUserData")
+      let userData
+
+      if (response.user && response.user.firstName && response.user.lastName) {
+        // Use API response if it has complete data
+        userData = {
+          id: response.user.id,
+          email: response.user.email,
+          firstName: response.user.firstName,
+          lastName: response.user.lastName,
+          roles: response.roles
+        }
+      } else if (tempUserData) {
+        // Use temp data from signup if API doesn't have complete data
+        const parsedTempData = JSON.parse(tempUserData)
+        userData = {
+          ...parsedTempData,
+          id: response.user?.id || parsedTempData.id,
+          roles: response.roles,
+        }
+        localStorage.removeItem("tempUserData")
+      } else {
+        // Create minimal user data if nothing else is available
+        userData = {
+          id: response.user?.id || 0,
+          email: response.user?.email || email,
+          firstName: response.user?.firstName || "",
+          lastName: response.user?.lastName || "",
+          roles: response.roles
+        }
+      }
+
+      setUserData(userData)
+
+      console.log("Complete user data stored:", userData)
+      console.log("Verifying localStorage:", localStorage.getItem("userData"))
 
       showToast("Login successful! Redirecting...", "success")
 
@@ -115,7 +150,6 @@ export default function LoginPage() {
                 </Link>
               </div>
             </div>
-
           </div>
         </div>
       </div>

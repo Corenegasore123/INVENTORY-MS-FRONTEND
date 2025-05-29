@@ -20,37 +20,49 @@ export default function AdminLayout({
   useEffect(() => {
     console.log("Admin layout - checking auth")
 
-    // Check authentication
-    if (!isAuthenticated()) {
-      console.log("Not authenticated, redirecting to login")
-      router.push("/login")
-      return
+    // Add a small delay to ensure localStorage is available
+    const checkAuth = () => {
+      // Check authentication
+      if (!isAuthenticated()) {
+        console.log("Not authenticated, redirecting to login")
+        router.push("/login")
+        return
+      }
+
+      // Check admin role
+      if (!isAdmin()) {
+        console.log("Not admin, redirecting to dashboard")
+        router.push("/dashboard")
+        return
+      }
+
+      console.log("Admin access granted")
+      setAuthorized(true)
+      setLoading(false)
     }
 
-    // Check admin role
-    if (!isAdmin()) {
-      console.log("Not admin, redirecting to dashboard")
-      router.push("/dashboard")
-      return
-    }
-
-    console.log("Admin access granted")
-    setAuthorized(true)
-    setLoading(false)
+    // Small delay to ensure everything is loaded
+    const timer = setTimeout(checkAuth, 100)
+    return () => clearTimeout(timer)
   }, [router])
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading admin panel...</p>
+        </div>
       </div>
     )
   }
 
   if (!authorized) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Redirecting...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-center">
+          <p className="text-gray-600">Redirecting...</p>
+        </div>
       </div>
     )
   }
