@@ -1,31 +1,31 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { apiClient } from "@/lib/api"
-import type { User } from "@/types"
-import Card from "@/components/ui/Card"
+import { useState, useEffect } from "react";
+import { apiClient } from "@/lib/api";
+import type { User } from "@/types";
+import Card from "@/components/ui/Card";
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState<User[]>([])
-  const [loading, setLoading] = useState(true)
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const data = await apiClient.getAllUsers()
-        setUsers(data)
+        const data = await apiClient.getAllUsers();
+        setUsers(data);
       } catch (error) {
-        console.error("Failed to fetch users:", error)
+        console.error("Failed to fetch users:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchUsers()
-  }, [])
+    fetchUsers();
+  }, []);
 
   if (loading) {
-    return <div className="text-center py-8">Loading users...</div>
+    return <div className="text-center py-8">Loading users...</div>;
   }
 
   return (
@@ -39,7 +39,9 @@ export default function AdminUsersPage() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  User
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Email
                 </th>
@@ -69,14 +71,18 @@ export default function AdminUsersPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.email}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {user.email}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex space-x-1">
                       {user.roles.map((role) => (
                         <span
                           key={role}
                           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            role === "ADMIN" ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"
+                            role === "ADMIN"
+                              ? "bg-red-100 text-red-800"
+                              : "bg-green-100 text-green-800"
                           }`}
                         >
                           {role}
@@ -85,7 +91,7 @@ export default function AdminUsersPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(user.createdAt).toLocaleDateString()}
+                    {/* {new Date(user.createdAt).toLocaleDateString()} */}
                   </td>
                 </tr>
               ))}
@@ -94,5 +100,5 @@ export default function AdminUsersPage() {
         </div>
       </Card>
     </div>
-  )
+  );
 }

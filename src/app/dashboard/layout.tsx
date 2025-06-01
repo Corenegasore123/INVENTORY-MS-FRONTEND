@@ -1,10 +1,9 @@
 "use client"
 
 import type React from "react"
-
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { isAuthenticated, isAdmin } from "@/lib/auth"
+import { getToken, getUserRoles, isAdmin } from "@/lib/auth"
 import Sidebar from "@/components/layout/Sidebar"
 import Navbar from "@/components/layout/Navbar"
 
@@ -18,31 +17,45 @@ export default function DashboardLayout({
   const router = useRouter()
 
   useEffect(() => {
-    console.log("Dashboard layout - checking auth")
+    const checkAccess = async () => {
+      try {
+        console.log("=== DASHBOARD LAYOUT CHECK ===")
 
-    // Add a small delay to ensure localStorage is available
-    const checkAuth = () => {
-      // Check authentication
-      if (!isAuthenticated()) {
-        console.log("Not authenticated, redirecting to login")
-        router.push("/login")
-        return
+        // Check if user has token
+        const token = getToken()
+        console.log("Token exists:", !!token)
+
+        if (!token) {
+          console.log("No token found, redirecting to login")
+          router.replace("/login")
+          return
+        }
+
+        // Check if user has admin role (if so, redirect to admin)
+        const roles = getUserRoles()
+        console.log("User roles in dashboard layout:", roles)
+
+        const userIsAdmin = isAdmin()
+        console.log("User is admin (dashboard layout):", userIsAdmin)
+
+        if (userIsAdmin) {
+          console.log("User is admin, redirecting to admin panel")
+          window.location.href = "/admin"
+          return
+        }
+
+        console.log("Dashboard access granted")
+        setAuthorized(true)
+      } catch (error) {
+        console.error("Error checking dashboard access:", error)
+        router.replace("/login")
+      } finally {
+        setLoading(false)
       }
-
-      // If user is admin, redirect to admin panel
-      if (isAdmin()) {
-        console.log("User is admin, redirecting to admin panel")
-        router.push("/admin")
-        return
-      }
-
-      console.log("Dashboard access granted")
-      setAuthorized(true)
-      setLoading(false)
     }
 
-    // Small delay to ensure everything is loaded
-    const timer = setTimeout(checkAuth, 100)
+    // Add a small delay to ensure client-side hydration is complete
+    const timer = setTimeout(checkAccess, 300)
     return () => clearTimeout(timer)
   }, [router])
 
@@ -61,7 +74,7 @@ export default function DashboardLayout({
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-center">
-          <p className="text-gray-600">Redirecting...</p>
+          <p className="text-gray-600">Checking permissions...</p>
         </div>
       </div>
     )

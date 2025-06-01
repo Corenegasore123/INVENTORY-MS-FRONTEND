@@ -1,10 +1,9 @@
 "use client"
 
 import type React from "react"
-
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { isAuthenticated, isAdmin } from "@/lib/auth"
+import { getToken, getUserRoles, isAdmin } from "@/lib/auth"
 import Sidebar from "@/components/layout/Sidebar"
 import Navbar from "@/components/layout/Navbar"
 
@@ -18,31 +17,45 @@ export default function AdminLayout({
   const router = useRouter()
 
   useEffect(() => {
-    console.log("Admin layout - checking auth")
+    const checkAccess = async () => {
+      try {
+        console.log("=== ADMIN LAYOUT CHECK ===")
 
-    // Add a small delay to ensure localStorage is available
-    const checkAuth = () => {
-      // Check authentication
-      if (!isAuthenticated()) {
-        console.log("Not authenticated, redirecting to login")
-        router.push("/login")
-        return
+        // Check if user has token
+        const token = getToken()
+        console.log("Token exists:", !!token)
+
+        if (!token) {
+          console.log("No token found, redirecting to login")
+          router.replace("/login")
+          return
+        }
+
+        // Check if user has admin role
+        const roles = getUserRoles()
+        console.log("User roles in admin layout:", roles)
+
+        const userIsAdmin = isAdmin()
+        console.log("User is admin (admin layout):", userIsAdmin)
+
+        if (!userIsAdmin) {
+          console.log("User is not admin, redirecting to dashboard")
+          window.location.href = "/dashboard"
+          return
+        }
+
+        console.log("Admin access granted")
+        setAuthorized(true)
+      } catch (error) {
+        console.error("Error checking admin access:", error)
+        router.replace("/login")
+      } finally {
+        setLoading(false)
       }
-
-      // Check admin role
-      if (!isAdmin()) {
-        console.log("Not admin, redirecting to dashboard")
-        router.push("/dashboard")
-        return
-      }
-
-      console.log("Admin access granted")
-      setAuthorized(true)
-      setLoading(false)
     }
 
-    // Small delay to ensure everything is loaded
-    const timer = setTimeout(checkAuth, 100)
+    // Add a small delay to ensure client-side hydration is complete
+    const timer = setTimeout(checkAccess, 300)
     return () => clearTimeout(timer)
   }, [router])
 
@@ -61,7 +74,7 @@ export default function AdminLayout({
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-center">
-          <p className="text-gray-600">Redirecting...</p>
+          <p className="text-gray-600">Checking admin permissions...</p>
         </div>
       </div>
     )
