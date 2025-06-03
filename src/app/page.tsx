@@ -13,10 +13,6 @@ import {
   CheckCircle2,
   Star,
   MessageSquare,
-  Mail,
-  Phone,
-  HelpCircle,
-  Shield,
   Twitter,
   Linkedin,
   Facebook,
@@ -24,57 +20,56 @@ import {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-900 text-white">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-100 sticky top-0 z-50">
+      <header className="bg-gray-900/80 backdrop-blur-lg border-b border-gray-800 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="flex items-center space-x-2"
+              transition={{ duration: 0.5 }}
+              className="flex items-center space-x-3"
             >
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center transform hover:rotate-12 transition-transform">
-                <span className="text-white font-bold text-sm">IM</span>
+              <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-2xl flex items-center justify-center transform hover:scale-110 transition-transform duration-300">
+                <span className="text-gray-900 font-extrabold text-lg">IM</span>
               </div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
                 Inventory MS
               </h1>
             </motion.div>
             <nav className="hidden md:flex space-x-8">
-              {["Features", "Pricing", "Testimonials", "Contact"].map(
-                (item, index) => (
-                  <motion.a
-                    key={item}
-                    href={`#${item.toLowerCase()}`}
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="text-gray-600 hover:text-gray-900 transition-colors relative group"
-                  >
-                    {item}
-                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 transition-all group-hover:w-full"></span>
-                  </motion.a>
-                )
-              )}
+              {["Features", "Testimonials", "Contact"].map((item, index) => (
+                <motion.a
+                  key={item}
+                  href={`#${item.toLowerCase()}`}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1, duration: 0.4 }}
+                  className="text-gray-300 hover:text-white font-medium transition-colors relative group"
+                >
+                  {item}
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-400 to-purple-500 transition-all duration-300 group-hover:w-full"></span>
+                </motion.a>
+              ))}
             </nav>
             <div className="flex space-x-4">
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 }}
+                transition={{ delay: 0.4, duration: 0.5 }}
               >
                 <Link
                   href="/login"
-                  className="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-gray-50"
+                  className="text-gray-300 hover:text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-all hover:bg-gray-800/50 backdrop-blur-sm"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/signup"
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 px-6 py-2 rounded-lg text-sm font-medium transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+                  className="bg-gradient-to-r from-cyan-400 to-purple-500 text-gray-900 hover:from-cyan-500 hover:to-purple-600 px-6 py-2.5 rounded-xl text-sm font-medium transition-all transform hover:scale-105 shadow-lg hover:shadow-cyan-500/50"
                 >
-                  Get Started
+                  Get Started Free
                 </Link>
               </motion.div>
             </div>
@@ -83,11 +78,11 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
+      <section className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-geometric.png')] opacity-20"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28 lg:py-40">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             className="text-center"
@@ -95,10 +90,10 @@ export default function LandingPage() {
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.2 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
               className="mb-8"
             >
-              <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800 mb-6 hover:bg-blue-200 transition-colors cursor-default">
+              <span className="inline-flex items-center px-5 py-2.5 rounded-full text-sm font-medium bg-gray-800/80 text-cyan-400 backdrop-blur-md mb-6 hover:bg-gray-700/80 transition-all">
                 <Rocket className="w-4 h-4 mr-2" />
                 Trusted by 10,000+ businesses worldwide
               </span>
@@ -106,63 +101,56 @@ export default function LandingPage() {
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-8 leading-tight"
+              transition={{ delay: 0.4, duration: 0.6 }}
+              className="text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-white mb-8"
             >
               Inventory Management
-              <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Made Simple
+              <span className="block bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
+                Reinvented
               </span>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="text-xl md:text-2xl text-gray-600 mb-12 max-w-4xl mx-auto leading-relaxed"
+              transition={{ delay: 0.6, duration: 0.6 }}
+              className="text-lg md:text-xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed"
             >
-              Transform your business with our powerful, intuitive inventory
-              management platform. Track products, manage stock levels, and
-              optimize your operations with real-time insights.
+              Revolutionize your business with our free, intuitive inventory
+              management platform. Track products, manage stock, and optimize
+              operations with real-time insights.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
+              transition={{ delay: 0.8, duration: 0.6 }}
               className="flex flex-col sm:flex-row gap-6 justify-center items-center"
             >
               <Link
                 href="/signup"
-                className="group bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 px-8 py-4 rounded-xl text-lg font-semibold transition-all transform hover:scale-105 shadow-xl hover:shadow-2xl relative overflow-hidden"
+                className="group bg-gradient-to-r from-cyan-400 to-purple-500 text-gray-900 hover:from-cyan-500 hover:to-purple-600 px-8 py-4 rounded-xl text-lg font-semibold transition-all transform hover:scale-105 shadow-lg hover:shadow-cyan-500/50 relative overflow-hidden backdrop-blur-sm"
               >
-                <span className="relative z-10">Start Free Trial</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              </Link>
-              <Link
-                href="/login"
-                className="group border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 px-8 py-4 rounded-xl text-lg font-semibold transition-all relative overflow-hidden"
-              >
-                <span className="relative z-10">Watch Demo</span>
-                <div className="absolute inset-0 bg-gray-50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <span className="relative z-10">Get Started Free</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </Link>
             </motion.div>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1 }}
-              className="mt-12 flex justify-center items-center space-x-8 text-sm text-gray-500"
+              transition={{ delay: 1, duration: 0.6 }}
+              className="mt-12 flex flex-wrap justify-center items-center gap-6 text-sm text-gray-400"
             >
               {[
                 {
-                  text: "No credit card required",
-                  icon: <CheckCircle2 className="w-4 h-4 text-green-500" />,
+                  text: "Completely free",
+                  icon: <CheckCircle2 className="w-4 h-4 text-cyan-400" />,
                 },
                 {
-                  text: "14-day free trial",
-                  icon: <Star className="w-4 h-4 text-blue-500" />,
+                  text: "No credit card needed",
+                  icon: <Star className="w-4 h-4 text-purple-400" />,
                 },
                 {
-                  text: "Cancel anytime",
-                  icon: <RefreshCw className="w-4 h-4 text-purple-500" />,
+                  text: "Instant access",
+                  icon: <RefreshCw className="w-4 h-4 text-cyan-400" />,
                 },
               ].map((item, index) => (
                 <div key={item.text} className="flex items-center space-x-2">
@@ -176,48 +164,48 @@ export default function LandingPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
               {
                 value: "10K+",
                 label: "Active Users",
-                color: "text-blue-600",
-                icon: <Users className="w-8 h-8 mx-auto mb-2" />,
+                color: "text-cyan-400",
+                icon: <Users className="w-10 h-10 mx-auto mb-3" />,
               },
               {
                 value: "1M+",
                 label: "Products Tracked",
-                color: "text-purple-600",
-                icon: <Package className="w-8 h-8 mx-auto mb-2" />,
+                color: "text-purple-400",
+                icon: <Package className="w-10 h-10 mx-auto mb-3" />,
               },
               {
                 value: "99.9%",
                 label: "Uptime",
-                color: "text-green-600",
-                icon: <BarChart3 className="w-8 h-8 mx-auto mb-2" />,
+                color: "text-green-400",
+                icon: <BarChart3 className="w-10 h-10 mx-auto mb-3" />,
               },
               {
                 value: "24/7",
                 label: "Support",
-                color: "text-orange-600",
-                icon: <MessageSquare className="w-8 h-8 mx-auto mb-2" />,
+                color: "text-orange-400",
+                icon: <MessageSquare className="w-10 h-10 mx-auto mb-3" />,
               },
             ].map((stat, index) => (
               <motion.div
                 key={stat.label}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * 0.1, duration: 0.5 }}
                 viewport={{ once: true }}
-                className="transform hover:scale-105 transition-transform"
+                className="transform hover:scale-105 transition-transform duration-300"
               >
                 <div className={`${stat.color}`}>{stat.icon}</div>
-                <div className={`text-4xl font-bold ${stat.color} mb-2`}>
+                <div className={`text-4xl font-extrabold ${stat.color} mb-2`}>
                   {stat.value}
                 </div>
-                <div className="text-gray-600">{stat.label}</div>
+                <div className="text-gray-400">{stat.label}</div>
               </motion.div>
             ))}
           </div>
@@ -225,85 +213,86 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-gray-50">
+      <section id="features" className="py-20 bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-4">
               Everything you need to manage inventory
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Powerful features designed to streamline your inventory management
-              and boost your business efficiency
+            <p className="text-lg text-gray-400 max-w-3xl mx-auto">
+              Powerful, free features designed to streamline your inventory
+              management and supercharge your business efficiency
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               {
                 icon: <Package className="w-8 h-8" />,
                 title: "Real-time Inventory Tracking",
                 description:
-                  "Monitor your stock levels in real-time across multiple locations. Get instant alerts when items are running low and never run out of stock again.",
-                gradient: "from-blue-500 to-blue-600",
+                  "Monitor stock levels in real-time across multiple locations with instant low-stock alerts.",
+                gradient: "from-cyan-400 to-cyan-600",
               },
               {
                 icon: <Tag className="w-8 h-8" />,
                 title: "Smart Product Management",
                 description:
-                  "Organize products with categories, tags, and custom fields. Bulk import/export capabilities and barcode scanning for efficient management.",
-                gradient: "from-green-500 to-green-600",
+                  "Organize products with tags, categories, and barcode scanning for seamless management.",
+                gradient: "from-green-400 to-green-600",
               },
               {
                 icon: <BarChart3 className="w-8 h-8" />,
                 title: "Advanced Analytics",
                 description:
-                  "Get detailed insights with customizable reports and dashboards. Track trends, forecast demand, and make data-driven decisions.",
-                gradient: "from-purple-500 to-purple-600",
+                  "Gain insights with customizable reports and dashboards to track trends and forecast demand.",
+                gradient: "from-purple-400 to-purple-600",
               },
               {
                 icon: <RefreshCw className="w-8 h-8" />,
                 title: "Automated Workflows",
                 description:
-                  "Set up automatic reorder points, supplier notifications, and workflow triggers to streamline your operations and save time.",
-                gradient: "from-orange-500 to-orange-600",
+                  "Automate reorder points and supplier notifications to save time and streamline operations.",
+                gradient: "from-orange-400 to-orange-600",
               },
               {
                 icon: <Users className="w-8 h-8" />,
                 title: "Team Collaboration",
                 description:
-                  "Manage user permissions, assign roles, and collaborate with your team. Track who made changes and when for complete accountability.",
-                gradient: "from-red-500 to-red-600",
+                  "Assign roles, manage permissions, and track changes for team accountability.",
+                gradient: "from-red-400 to-red-600",
               },
               {
                 icon: <Link2 className="w-8 h-8" />,
                 title: "Seamless Integrations",
                 description:
-                  "Connect with your existing tools and platforms. API access, webhooks, and pre-built integrations with popular business software.",
-                gradient: "from-indigo-500 to-indigo-600",
+                  "Connect with your tools via API, webhooks, and pre-built integrations.",
+                gradient: "from-cyan-400 to-purple-600",
               },
             ].map((feature, index) => (
               <motion.div
                 key={feature.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * 0.1, duration: 0.5 }}
                 viewport={{ once: true }}
-                className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
+                className="bg-gray-800/50 p-6 rounded-2xl shadow-xl hover:shadow-cyan-500/20 transition-all transform hover:-translate-y-1 backdrop-blur-md border border-gray-700/50"
               >
                 <div
-                  className={`w-16 h-16 bg-gradient-to-r ${feature.gradient} rounded-2xl flex items-center justify-center mb-6 transform hover:rotate-12 transition-transform`}
+                  className={`w-14 h-14 bg-gradient-to-r ${feature.gradient} rounded-xl flex items-center justify-center mb-6 transform hover:scale-110 transition-transform duration-300`}
                 >
                   <div className="text-white">{feature.icon}</div>
                 </div>
-                <h3 className="text-xl font-semibold mb-4 text-gray-900">
+                <h3 className="text-lg font-semibold mb-3 text-white">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-gray-400 text-sm leading-relaxed">
                   {feature.description}
                 </p>
               </motion.div>
@@ -312,130 +301,20 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Simple, transparent pricing
-            </h2>
-            <p className="text-xl text-gray-600">
-              Choose the plan that fits your business needs
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {[
-              {
-                name: "Starter",
-                price: "$29",
-                features: [
-                  "Up to 1,000 products",
-                  "5 inventory locations",
-                  "Basic reporting",
-                  "Email support",
-                ],
-                highlight: "border-gray-200",
-                button: "bg-gray-900 hover:bg-gray-800",
-              },
-              {
-                name: "Professional",
-                price: "$79",
-                features: [
-                  "Up to 10,000 products",
-                  "Unlimited locations",
-                  "Advanced reporting",
-                  "Priority support",
-                  "API access",
-                ],
-                popular: true,
-                highlight: "border-blue-500 shadow-2xl scale-105 z-10",
-                button: "bg-blue-600 hover:bg-blue-700",
-              },
-              {
-                name: "Enterprise",
-                price: "$199",
-                features: [
-                  "Unlimited products",
-                  "Unlimited locations",
-                  "Custom reporting",
-                  "24/7 support",
-                  "Custom integrations",
-                  "Dedicated account manager",
-                ],
-                highlight: "border-gray-200",
-                button: "bg-gray-900 hover:bg-gray-800",
-              },
-            ].map((plan, index, arr) => (
-              <motion.div
-                key={plan.name}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className={`flex flex-col justify-between bg-white border-2 ${plan.highlight} rounded-2xl p-8 hover:border-blue-300 transition-all transform hover:-translate-y-1 relative min-h-[520px]`}
-                style={{ minHeight: "520px" }}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium shadow-lg">
-                      Most Popular
-                    </span>
-                  </div>
-                )}
-                <div className="text-center">
-                  <h3 className="text-2xl font-semibold mb-4 text-gray-900 tracking-tight">
-                    {plan.name}
-                  </h3>
-                  <div className="mb-6">
-                    <span className="text-4xl font-bold text-gray-900">
-                      {plan.price}
-                    </span>
-                    <span className="text-gray-600">/month</span>
-                  </div>
-                  <ul className="space-y-4 mb-8 text-left">
-                    {plan.features.map((feature) => (
-                      <li key={feature} className="flex items-center space-x-3">
-                        <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
-                        <span className="text-gray-700">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="mt-auto flex items-end justify-center">
-                  <Link
-                    href="/signup"
-                    className={`w-full ${plan.button} text-white py-3 rounded-lg font-semibold transition-colors block text-center transform hover:scale-105 shadow-md`}
-                    style={{ marginTop: "auto" }}
-                  >
-                    Get Started
-                  </Link>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-20 bg-gray-50">
+      <section id="testimonials" className="py-20 bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-4">
               Loved by businesses worldwide
             </h2>
-            <p className="text-xl text-gray-600">
-              See what our customers have to say about Inventory MS
+            <p className="text-lg text-gray-400">
+              Hear from our users about how Inventory MS transforms their operations
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-2xl shadow-lg">
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="bg-gray-800/50 p-6 rounded-2xl shadow-xl border border-gray-700/50 backdrop-blur-md">
               <div className="flex items-center mb-4">
                 <div className="flex text-yellow-400">
                   <Star className="w-5 h-5 fill-current" />
@@ -445,25 +324,24 @@ export default function LandingPage() {
                   <Star className="w-5 h-5 fill-current" />
                 </div>
               </div>
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                "Inventory MS has completely transformed how we manage our
-                warehouse. The real-time tracking and automated alerts have
-                saved us countless hours and prevented stockouts."
+              <p className="text-gray-300 text-sm mb-6 leading-relaxed">
+                "Inventory MS has streamlined our warehouse operations. Real-time
+                tracking and automated alerts ensure we never miss a beat."
               </p>
               <div className="flex items-center">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
+                <div className="w-10 h-10 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-full flex items-center justify-center text-gray-900 font-semibold">
                   JS
                 </div>
                 <div className="ml-4">
-                  <div className="font-semibold text-gray-900">John Smith</div>
-                  <div className="text-gray-500 text-sm">
+                  <div className="font-semibold text-white">John Smith</div>
+                  <div className="text-gray-400 text-sm">
                     Operations Manager, TechCorp
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-8 rounded-2xl shadow-lg">
+            <div className="bg-gray-800/50 p-6 rounded-2xl shadow-xl border border-gray-700/50 backdrop-blur-md">
               <div className="flex items-center mb-4">
                 <div className="flex text-yellow-400">
                   <Star className="w-5 h-5 fill-current" />
@@ -473,25 +351,24 @@ export default function LandingPage() {
                   <Star className="w-5 h-5 fill-current" />
                 </div>
               </div>
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                "The analytics and reporting features are incredible. We can now
-                make data-driven decisions about our inventory and have improved
-                our efficiency by 40%."
+              <p className="text-gray-300 text-sm mb-6 leading-relaxed">
+                "The dashboards and reports give us clear insights into inventory
+                trends, boosting our efficiency by 40%."
               </p>
               <div className="flex items-center">
-                <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
+                <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-cyan-500 rounded-full flex items-center justify-center text-gray-900 font-semibold">
                   MJ
                 </div>
                 <div className="ml-4">
-                  <div className="font-semibold text-gray-900">
+                  <div className="font-semibold text-white">
                     Maria Johnson
                   </div>
-                  <div className="text-gray-500 text-sm">CEO, RetailPlus</div>
+                  <div className="text-gray-400 text-sm">CEO, RetailPlus</div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-8 rounded-2xl shadow-lg">
+            <div className="bg-gray-800/50 p-6 rounded-2xl shadow-xl border border-gray-700/50 backdrop-blur-md">
               <div className="flex items-center mb-4">
                 <div className="flex text-yellow-400">
                   <Star className="w-5 h-5 fill-current" />
@@ -501,18 +378,17 @@ export default function LandingPage() {
                   <Star className="w-5 h-5 fill-current" />
                 </div>
               </div>
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                "Easy to use, powerful features, and excellent customer support.
-                We migrated from our old system in just one week and haven't
-                looked back since."
+              <p className="text-gray-300 text-sm mb-6 leading-relaxed">
+                "Intuitive and packed with features. We switched from our old
+                system in a week and saw instant improvements."
               </p>
               <div className="flex items-center">
-                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold">
+                <div className="w-10 h-10 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full flex items-center justify-center text-gray-900 font-semibold">
                   DL
                 </div>
                 <div className="ml-4">
-                  <div className="font-semibold text-gray-900">David Lee</div>
-                  <div className="text-gray-500 text-sm">
+                  <div className="font-semibold text-white">David Lee</div>
+                  <div className="text-gray-400 text-sm">
                     Warehouse Manager, LogiFlow
                   </div>
                 </div>
@@ -523,27 +399,21 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
+      <section className="py-20 bg-gradient-to-r from-cyan-500 to-purple-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold text-white mb-6">
-            Ready to transform your inventory management?
+          <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-6">
+            Transform your inventory management
           </h2>
-          <p className="text-xl text-blue-100 mb-10 max-w-3xl mx-auto">
-            Join thousands of businesses that trust Inventory MS to streamline
-            their operations and boost efficiency. Start your free trial today!
+          <p className="text-lg text-gray-200 mb-10 max-w-3xl mx-auto">
+            Join thousands of businesses using Inventory MS to streamline
+            operations and boost efficiency, completely free.
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Link
               href="/signup"
-              className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-xl text-lg font-semibold transition-all transform hover:scale-105 shadow-xl"
+              className="bg-gray-900 text-white hover:bg-gray-800 px-8 py-4 rounded-xl text-lg font-semibold transition-all transform hover:scale-105 shadow-lg hover:shadow-cyan-500/50 backdrop-blur-sm"
             >
-              Start Free Trial
-            </Link>
-            <Link
-              href="/login"
-              className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 rounded-xl text-lg font-semibold transition-all"
-            >
-              Schedule Demo
+              Get Started Free
             </Link>
           </div>
         </div>
@@ -554,16 +424,15 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
             <div className="md:col-span-2">
-              <div className="flex items-center space-x-2 mb-6">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">IM</span>
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-2xl flex items-center justify-center">
+                  <span className="text-gray-900 font-extrabold text-lg">IM</span>
                 </div>
-                <h3 className="text-2xl font-bold">Inventory MS</h3>
+                <h3 className="text-2xl font-extrabold tracking-tight">Inventory MS</h3>
               </div>
               <p className="text-gray-400 mb-6 max-w-md">
-                The most powerful and intuitive inventory management platform
-                for modern businesses. Streamline your operations and boost
-                efficiency today.
+                The ultimate free inventory management platform for modern
+                businesses. Streamline operations and boost efficiency today.
               </p>
               <div className="flex space-x-4">
                 <a
@@ -593,11 +462,6 @@ export default function LandingPage() {
                 <li>
                   <a href="#" className="hover:text-white transition-colors">
                     Features
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    Pricing
                   </a>
                 </li>
                 <li>

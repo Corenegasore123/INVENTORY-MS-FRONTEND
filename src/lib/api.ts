@@ -60,26 +60,37 @@ class ApiClient {
         delete (fetchOptions as any).params;
     }
 
-    const response = await fetch(url.toString(), fetchOptions);
+    try {
+      const response = await fetch(url.toString(), fetchOptions);
 
-    if (!response.ok) {
-      let errorData;
-      try {
-        // Attempt to parse error response as JSON
-        errorData = await response.json();
-        // If JSON has a message or error field, use it
-        if (errorData && (errorData.message || errorData.error)) {
-             throw new Error(errorData.message || errorData.error);
+      if (!response.ok) {
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          if (errorData && (errorData.message || errorData.error)) {
+            errorMessage = errorData.message || errorData.error;
+          }
+        } catch (e) {
+          // If response is not JSON, use status text if available
+          if (response.statusText) {
+            errorMessage += ` - ${response.statusText}`;
+          }
         }
-      } catch (e) {
-        // If response is not JSON or doesn't have expected fields, use status text
-         console.error("Failed to parse error response as JSON or extract message:", e);
+        throw new Error(errorMessage);
       }
-       // Fallback to a generic HTTP error message
-      throw new Error(`HTTP error! status: ${response.status}, text: ${response.statusText}`);
-    }
 
-    return response.json();
+      // For DELETE operations, return void
+      if (options.method === 'DELETE') {
+        return undefined as T;
+      }
+
+      return response.json();
+    } catch (error) {
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        throw new Error('Network error: Unable to connect to the server. Please check your internet connection.');
+      }
+      throw error;
+    }
   }
 
   // Auth endpoints
@@ -154,6 +165,10 @@ class ApiClient {
     return this.request("/inventories")
   }
 
+  async getInventory(id: number): Promise<Inventory> {
+    return this.request(`/inventories/${id}`)
+  }
+
   async getAllInventories(): Promise<Inventory[]> {
     return this.request("/inventories/all")
   }
@@ -187,6 +202,10 @@ class ApiClient {
     return this.request("/products/all")
   }
 
+  async getProduct(id: number): Promise<Product> {
+    return this.request(`/products/${id}`);
+  }
+
   async createProduct(data: ProductDTO): Promise<Product> {
     return this.request("/products", {
       method: "POST",
@@ -207,6 +226,22 @@ class ApiClient {
     })
   }
 
+  async getArchivedProducts(): Promise<Product[]> {
+    return this.request("/products/archived");
+  }
+
+  async archiveProduct(id: number): Promise<void> {
+    return this.request(`/products/${id}/archive`, {
+      method: "POST",
+    });
+  }
+
+  async unarchiveProduct(id: number): Promise<void> {
+    return this.request(`/products/${id}/unarchive`, {
+      method: "POST",
+    });
+  }
+
   // Transfer endpoints
   async getTransfers(): Promise<TransferResponseDTO[]> {
     const response = await this.request<TransferResponseDTO[]>("/transfers")
@@ -221,13 +256,30 @@ class ApiClient {
     return response
   }
 
-  async updateTransferStatus(
-    id: number,
-    status: "PENDING" | "COMPLETED" | "CANCELLED"
-  ): Promise<TransferResponseDTO> {
-    const response = await this.request<TransferResponseDTO>(`/transfers/${id}/status`, {
-      method: "PATCH",
-      body: JSON.stringify({ status }),
+  async completeTransfer(id: number): Promise<TransferResponseDTO> {
+    const response = await this.request<TransferResponseDTO>(`/transfers/${id}/complete`, {
+      method: "POST",
+    })
+    return response
+  }
+
+  async cancelTransfer(id: number): Promise<TransferResponseDTO> {
+    const response = await this.request<TransferResponseDTO>(`/transfers/${id}/cancel`, {
+      method: "POST",
+    })
+    return response
+  }
+
+  async archiveTransfer(id: number): Promise<TransferResponseDTO> {
+    const response = await this.request<TransferResponseDTO>(`/transfers/${id}/archive`, {
+      method: "POST",
+    })
+    return response
+  }
+
+  async unarchiveTransfer(id: number): Promise<TransferResponseDTO> {
+    const response = await this.request<TransferResponseDTO>(`/transfers/${id}/unarchive`, {
+      method: "POST",
     })
     return response
   }
@@ -240,36 +292,36 @@ class ApiClient {
 
   // Report endpoints
   async getStockReport(): Promise<StockReportDTO> {
-    const response = await this.request<StockReportDTO>("/reports/stock")
+    const response = await this.request<StockReportDTO>("/products/stock-report")
     return response
   }
 
   async getStockReportByDateRange(startDate: string, endDate: string): Promise<StockReportDTO> {
-    const response = await this.request<StockReportDTO>("/reports/stock", {
+    const response = await this.request<StockReportDTO>("/products/stock-report/date-range", {
       params: { startDate, endDate },
     })
     return response
   }
 
   async getProductReport(): Promise<ProductReportDTO[]> {
-    const response = await this.request<ProductReportDTO[]>("/reports/products")
+    const response = await this.request<ProductReportDTO[]>("/products/report")
     return response
   }
 
   async getProductReportByDateRange(startDate: string, endDate: string): Promise<ProductReportDTO[]> {
-    const response = await this.request<ProductReportDTO[]>("/reports/products", {
+    const response = await this.request<ProductReportDTO[]>("/products/report/date-range", {
       params: { startDate, endDate },
     })
     return response
   }
 
   async getInventoryReport(): Promise<InventoryReportDTO[]> {
-    const response = await this.request<InventoryReportDTO[]>("/reports/inventories")
+    const response = await this.request<InventoryReportDTO[]>("/products/inventory-report")
     return response
   }
 
   async getInventoryReportByDateRange(startDate: string, endDate: string): Promise<InventoryReportDTO[]> {
-    const response = await this.request<InventoryReportDTO[]>("/reports/inventories", {
+    const response = await this.request<InventoryReportDTO[]>("/products/inventory-report/date-range", {
       params: { startDate, endDate },
     })
     return response

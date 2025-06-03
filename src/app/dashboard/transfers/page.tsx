@@ -15,9 +15,11 @@ import Modal from "@/components/ui/Modal";
 import Toast from "@/components/ui/Toast";
 import { useToast } from "@/hooks/useToast";
 import { useRecentActivity } from "@/hooks/useRecentActivity";
-import { Plus, Edit, Trash2, Loader2 } from "lucide-react";
+import { Plus, Edit, Trash2, Loader2, Check, X, Archive } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function TransfersPage() {
+  const router = useRouter();
   const { toast, showToast, hideToast } = useToast();
   const { addActivity } = useRecentActivity();
   const [transfers, setTransfers] = useState<TransferResponseDTO[]>([]);
@@ -31,8 +33,8 @@ export default function TransfersPage() {
     productId: 0,
     sourceInventoryId: 0,
     destinationInventoryId: 0,
-    quantity: 0,
-    status: "PENDING",
+    currentQuantity: 0,
+    transferQuantity: 0,
   });
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
@@ -66,7 +68,7 @@ export default function TransfersPage() {
         apiClient.getProducts(),
         apiClient.getInventories(),
       ]);
-      setTransfers(transfersData);
+      setTransfers(transfersData.filter((transfer) => !transfer.archived));
       setProducts(productsData);
       setInventories(inventoriesData);
     } catch (error) {
@@ -79,76 +81,95 @@ export default function TransfersPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormError(null);
+    setCreating(true);
+    setFormError("");
+
+    // Always fetch latest products before submitting
+    try {
+      const productsData = await apiClient.getProducts();
+      setProducts(productsData);
+      // Update currentQuantity in formData to match backend
+      const selectedProduct = productsData.find(
+        (p) =>
+          p.id === formData.productId &&
+          p.inventoryId === formData.sourceInventoryId
+      );
+      if (selectedProduct) {
+        formData.currentQuantity = selectedProduct.quantity;
+      }
+    } catch (error) {
+      showToast("Failed to refresh products", "error");
+      setCreating(false);
+      return;
+    }
+
     if (
       !formData.productId ||
       !formData.sourceInventoryId ||
       !formData.destinationInventoryId ||
-      formData.quantity <= 0 ||
-      formData.sourceInventoryId === formData.destinationInventoryId
+      !formData.transferQuantity
     ) {
-      setFormError(
-        "All fields are required and must be valid. Source and destination inventories must be different."
-      );
-      showToast("All fields are required and must be valid.", "error");
+      setFormError("All fields are required");
+      setCreating(false);
       return;
     }
-    setCreating(true);
+
+    if (formData.sourceInventoryId === formData.destinationInventoryId) {
+      setFormError("Source and destination inventories must be different");
+      setCreating(false);
+      return;
+    }
+
+    if (formData.transferQuantity <= 0) {
+      setFormError("Transfer quantity must be greater than 0");
+      setCreating(false);
+      return;
+    }
+
+    const product = availableProducts.find((p) => p.id === formData.productId);
+    if (formData.transferQuantity > (product?.quantity || 0)) {
+      setFormError("Transfer quantity cannot exceed available quantity");
+      setCreating(false);
+      return;
+    }
+
     try {
-      if (editingTransfer) {
-        const updatedTransfer = await apiClient.updateTransferStatus(
-          editingTransfer.id,
-          editingTransfer.status
+      const newTransfer = await apiClient.createTransfer(formData);
+      if (newTransfer) {
+        showToast("Transfer created successfully!", "success");
+        const sourceInventory = inventories.find(
+          (inv) => inv.id === formData.sourceInventoryId
         );
-        if (updatedTransfer) {
-          showToast("Transfer status updated successfully!", "success");
-          addActivity({
-            type: "transfer_updated",
-            title: "Transfer Updated",
-            description: `Updated transfer status to ${updatedTransfer.status}`,
-            icon: "📝",
-            color: "blue",
-          });
-          setIsModalOpen(false);
-          setEditingTransfer(null);
-          fetchData();
-        }
-      } else {
-        const newTransfer = await apiClient.createTransfer(formData);
-        if (newTransfer) {
-          showToast("Transfer created successfully!", "success");
-          const product = products.find((p) => p.id === formData.productId);
-          const sourceInventory = inventories.find(
-            (inv) => inv.id === formData.sourceInventoryId
-          );
-          const destInventory = inventories.find(
-            (inv) => inv.id === formData.destinationInventoryId
-          );
-          addActivity({
-            type: "transfer_created",
-            title: "New Transfer Created",
-            description: `Transferring ${formData.quantity} ${
-              product?.name || "items"
-            } from ${sourceInventory?.name || "source"} to ${
-              destInventory?.name || "destination"
-            }`,
-            icon: "🔄",
-            color: "green",
-          });
-          setIsModalOpen(false);
-          setFormData({
-            productId: 0,
-            sourceInventoryId: 0,
-            destinationInventoryId: 0,
-            quantity: 0,
-            status: "PENDING",
-          });
-          fetchData();
-        }
+        const destInventory = inventories.find(
+          (inv) => inv.id === formData.destinationInventoryId
+        );
+        addActivity({
+          type: "transfer_created",
+          title: "New Transfer Created",
+          description: `Transferring ${formData.transferQuantity} ${
+            product?.name || "items"
+          } from ${sourceInventory?.name || "source"} to ${
+            destInventory?.name || "destination"
+          }`,
+          icon: "🔄",
+          color: "green",
+        });
+        setIsModalOpen(false);
+        setFormData({
+          productId: 0,
+          sourceInventoryId: 0,
+          destinationInventoryId: 0,
+          currentQuantity: 0,
+          transferQuantity: 0,
+        });
+        fetchData();
       }
     } catch (error: any) {
       console.error("Error saving transfer:", error);
-      const message = error?.message || "Failed to save transfer";
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to save transfer";
       setFormError(message);
       showToast(message, "error");
     } finally {
@@ -157,8 +178,84 @@ export default function TransfersPage() {
   };
 
   const handleEdit = (transfer: TransferResponseDTO) => {
-    setEditingTransfer(transfer);
-    setIsModalOpen(true);
+    if (transfer.status === "PENDING") {
+      setEditingTransfer(transfer);
+      setIsModalOpen(true);
+    } else {
+      showToast("Only pending transfers can be modified", "error");
+    }
+  };
+
+  const handleComplete = async (id: number) => {
+    try {
+      const updatedTransfer = await apiClient.completeTransfer(id);
+      if (updatedTransfer) {
+        showToast("Transfer completed successfully!", "success");
+        addActivity({
+          type: "transfer_updated",
+          title: "Transfer Completed",
+          description: `Completed transfer of ${updatedTransfer.quantity} ${updatedTransfer.productName}`,
+          icon: "✅",
+          color: "green",
+        });
+        fetchData();
+      }
+    } catch (error: any) {
+      console.error("Failed to complete transfer:", error);
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to complete transfer";
+      showToast(message, "error");
+    }
+  };
+
+  const handleCancel = async (id: number) => {
+    try {
+      const updatedTransfer = await apiClient.cancelTransfer(id);
+      if (updatedTransfer) {
+        showToast("Transfer cancelled successfully!", "success");
+        addActivity({
+          type: "transfer_updated",
+          title: "Transfer Cancelled",
+          description: `Cancelled transfer of ${updatedTransfer.quantity} ${updatedTransfer.productName}`,
+          icon: "❌",
+          color: "red",
+        });
+        fetchData();
+      }
+    } catch (error: any) {
+      console.error("Failed to cancel transfer:", error);
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to cancel transfer";
+      showToast(message, "error");
+    }
+  };
+
+  const handleArchive = async (id: number) => {
+    try {
+      const updatedTransfer = await apiClient.archiveTransfer(id);
+      if (updatedTransfer) {
+        showToast("Transfer archived successfully!", "success");
+        addActivity({
+          type: "transfer_updated",
+          title: "Transfer Archived",
+          description: `Archived transfer of ${updatedTransfer.quantity} ${updatedTransfer.productName}`,
+          icon: "📦",
+          color: "gray",
+        });
+        fetchData();
+      }
+    } catch (error: any) {
+      console.error("Failed to archive transfer:", error);
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to archive transfer";
+      showToast(message, "error");
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -168,29 +265,40 @@ export default function TransfersPage() {
   const confirmDelete = async () => {
     if (deletingId !== null) {
       try {
-        await apiClient.deleteTransfer(deletingId);
-        showToast("Transfer deleted successfully!", "success");
+        await apiClient.archiveTransfer(deletingId);
+        showToast("Transfer archived successfully!", "success");
         fetchData();
-      } catch (error) {
-        console.error("Failed to delete transfer:", error);
-        showToast("Failed to delete transfer", "error");
+      } catch (error: any) {
+        console.error("Failed to archive transfer:", error);
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          "Failed to archive transfer";
+        showToast(message, "error");
       } finally {
         setDeletingId(null);
       }
     }
   };
 
-  const openCreateModal = () => {
+  const openCreateModal = async () => {
     setEditingTransfer(null);
     setFormData({
       productId: 0,
       sourceInventoryId: 0,
       destinationInventoryId: 0,
-      quantity: 0,
-      status: "PENDING",
+      currentQuantity: 0,
+      transferQuantity: 0,
     });
     setAvailableProducts([]);
     setIsModalOpen(true);
+    // Always fetch latest products before opening modal
+    try {
+      const productsData = await apiClient.getProducts();
+      setProducts(productsData);
+    } catch (error) {
+      showToast("Failed to refresh products", "error");
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -226,53 +334,73 @@ export default function TransfersPage() {
         onClose={hideToast}
       />
 
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
+      <div className="space-y-6 p-6">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Transfers</h1>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+              Transfers
+            </h1>
             <p className="text-gray-600 mt-1">
               Manage inventory transfers between locations
             </p>
           </div>
-          <Button onClick={openCreateModal}>
-            <div className="flex items-center space-x-2">
-              <Plus className="w-4 h-4" />
-              <span>New Transfer</span>
-            </div>
-          </Button>
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="outline"
+              onClick={() => router.push("/dashboard/transfers/archived")}
+              className="flex items-center space-x-2"
+            >
+              <Archive className="w-4 h-4" />
+              <span>Archived Transfers</span>
+            </Button>
+            <Button
+              onClick={openCreateModal}
+              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-sm hover:shadow-md transition-all duration-200"
+            >
+              <div className="flex items-center space-x-2">
+                <Plus className="w-5 h-5" />
+                <span>New Transfer</span>
+              </div>
+            </Button>
+          </div>
         </div>
 
-        <Card>
+        {/* Transfers Table */}
+        <Card className="shadow-sm hover:shadow-md transition-all duration-200">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Product
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     From
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     To
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Quantity
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Created
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {transfers.map((transfer) => (
-                  <tr key={transfer.id} className="hover:bg-gray-50">
+                  <tr
+                    key={transfer.id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
                         {transfer.productName}
@@ -288,12 +416,14 @@ export default function TransfersPage() {
                         {transfer.destinationInventoryName}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {transfer.quantity}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {transfer.quantity}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
                           transfer.status
                         )}`}
                       >
@@ -303,18 +433,31 @@ export default function TransfersPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(transfer.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      {transfer.status === "PENDING" && (
+                        <>
+                          <button
+                            onClick={() => handleComplete(transfer.id)}
+                            className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors mr-2"
+                            title="Complete Transfer"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleCancel(transfer.id)}
+                            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors mr-2"
+                            title="Cancel Transfer"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
                       <button
-                        onClick={() => handleEdit(transfer)}
-                        className="text-blue-600 hover:text-blue-900 transition-colors"
+                        onClick={() => handleArchive(transfer.id)}
+                        className="p-2 text-gray-500 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+                        title="Archive Transfer"
                       >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(transfer.id)}
-                        className="text-red-600 hover:text-red-900 transition-colors"
-                      >
-                        Delete
+                        <Archive className="w-4 h-4" />
                       </button>
                     </td>
                   </tr>
@@ -325,233 +468,201 @@ export default function TransfersPage() {
         </Card>
 
         {transfers.length === 0 && (
-          <Card>
-            <div className="text-center py-12">
-              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Card className="shadow-sm hover:shadow-md transition-all duration-200">
+            <div className="text-center py-16">
+              <div className="w-24 h-24 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-4xl">🔄</span>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
                 No transfers found
               </h3>
-              <p className="text-gray-500 mb-6">
-                Start by creating a new transfer
+              <p className="text-gray-500 mb-8 max-w-md mx-auto">
+                Start by creating a new transfer between your inventory
+                locations
               </p>
-              <Button onClick={openCreateModal}>
+              <Button
+                onClick={openCreateModal}
+                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-sm hover:shadow-md transition-all duration-200"
+              >
                 Create your first transfer
               </Button>
             </div>
           </Card>
         )}
 
+        {/* Create/Edit Modal */}
         <Modal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          title={editingTransfer ? "Edit Transfer Status" : "New Transfer"}
+          title={editingTransfer ? "Edit Transfer" : "New Transfer"}
         >
-          <form onSubmit={handleSubmit}>
-            {editingTransfer ? (
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Status
-                </label>
-                <select
-                  className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  value={editingTransfer.status}
-                  onChange={(e) =>
-                    setEditingTransfer({
-                      ...editingTransfer,
-                      status: e.target.value as
-                        | "PENDING"
-                        | "COMPLETED"
-                        | "CANCELLED",
-                    })
-                  }
-                >
-                  <option value="PENDING">Pending</option>
-                  <option value="COMPLETED">Completed</option>
-                  <option value="CANCELLED">Cancelled</option>
-                </select>
-              </div>
-            ) : (
-              <>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Source Inventory
-                  </label>
-                  <select
-                    className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    value={formData.sourceInventoryId}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        sourceInventoryId: Number.parseInt(e.target.value),
-                        productId: 0,
-                      })
-                    }
-                    required
-                  >
-                    <option value={0}>Select source inventory</option>
-                    {inventories.map((inventory) => (
-                      <option key={inventory.id} value={inventory.id}>
-                        {inventory.name} - {inventory.location}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Product
-                  </label>
-                  <select
-                    className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    value={formData.productId}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        productId: Number.parseInt(e.target.value),
-                      })
-                    }
-                    required
-                    disabled={!formData.sourceInventoryId}
-                  >
-                    <option value={0}>Select a product</option>
-                    {availableProducts.map((product) => (
-                      <option key={product.id} value={product.id}>
-                        {product.name} (Available: {product.quantity})
-                      </option>
-                    ))}
-                  </select>
-                  {!formData.sourceInventoryId && (
-                    <p className="mt-1 text-sm text-gray-500">
-                      Please select a source inventory first
-                    </p>
-                  )}
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Destination Inventory
-                  </label>
-                  <select
-                    className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    value={formData.destinationInventoryId}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        destinationInventoryId: Number.parseInt(e.target.value),
-                      })
-                    }
-                    required
-                  >
-                    <option value={0}>Select destination inventory</option>
-                    {inventories
-                      .filter((inv) => inv.id !== formData.sourceInventoryId)
-                      .map((inventory) => (
-                        <option key={inventory.id} value={inventory.id}>
-                          {inventory.name} - {inventory.location}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-                <Input
-                  label="Quantity"
-                  type="number"
-                  value={formData.quantity}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      quantity: Number.parseInt(e.target.value),
-                    })
-                  }
-                  placeholder="0"
-                  required
-                  max={
-                    availableProducts.find((p) => p.id === formData.productId)
-                      ?.quantity || 0
-                  }
-                />
-                {formData.productId && (
-                  <p className="mt-1 text-sm text-gray-500">
-                    Available quantity:{" "}
-                    {availableProducts.find((p) => p.id === formData.productId)
-                      ?.quantity || 0}
-                  </p>
-                )}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Status
-                  </label>
-                  <select
-                    className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    value={formData.status}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        status: e.target.value as
-                          | "PENDING"
-                          | "COMPLETED"
-                          | "CANCELLED",
-                      })
-                    }
-                    required
-                  >
-                    <option value="PENDING">Pending</option>
-                    <option value="COMPLETED">Completed</option>
-                    <option value="CANCELLED">Cancelled</option>
-                  </select>
-                </div>
-              </>
-            )}
+          <form onSubmit={handleSubmit} className="space-y-4">
             {formError && (
-              <p className="text-red-600 text-sm mb-2">{formError}</p>
+              <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+                {formError}
+              </div>
             )}
-            <div className="flex justify-end space-x-4 mt-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Source Inventory
+              </label>
+              <select
+                className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                value={formData.sourceInventoryId}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    sourceInventoryId: Number.parseInt(e.target.value),
+                    productId: 0,
+                  })
+                }
+                required
+              >
+                <option value={0}>Select source inventory</option>
+                {inventories.map((inventory) => (
+                  <option key={inventory.id} value={inventory.id}>
+                    {inventory.name} - {inventory.location}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Product
+              </label>
+              <select
+                className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                value={formData.productId}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    productId: Number.parseInt(e.target.value),
+                  })
+                }
+                required
+                disabled={!formData.sourceInventoryId}
+              >
+                <option value={0}>Select a product</option>
+                {availableProducts.map((product) => (
+                  <option key={product.id} value={product.id}>
+                    {product.name} (Available: {product.quantity})
+                  </option>
+                ))}
+              </select>
+              {!formData.sourceInventoryId && (
+                <p className="mt-1 text-sm text-gray-500">
+                  Please select a source inventory first
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Destination Inventory
+              </label>
+              <select
+                className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                value={formData.destinationInventoryId}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    destinationInventoryId: Number.parseInt(e.target.value),
+                  })
+                }
+                required
+              >
+                <option value={0}>Select destination inventory</option>
+                {inventories
+                  .filter((inv) => inv.id !== formData.sourceInventoryId)
+                  .map((inventory) => (
+                    <option key={inventory.id} value={inventory.id}>
+                      {inventory.name} - {inventory.location}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Transfer Quantity
+              </label>
+              <Input
+                type="number"
+                value={formData.transferQuantity}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    transferQuantity: Number.parseInt(e.target.value),
+                  })
+                }
+                placeholder="0"
+                required
+                max={
+                  availableProducts.find((p) => p.id === formData.productId)
+                    ?.quantity || 0
+                }
+              />
+              {formData.productId && (
+                <p className="mt-1 text-sm text-gray-500">
+                  Available quantity:{" "}
+                  {availableProducts.find((p) => p.id === formData.productId)
+                    ?.quantity || 0}
+                </p>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
               <Button
                 type="button"
-                variant="outline"
                 onClick={() => setIsModalOpen(false)}
+                className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                className="w-full group relative overflow-hidden"
                 disabled={creating}
+                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
               >
-                <span className="relative z-10">
-                  {creating ? (
-                    <div className="flex items-center justify-center">
-                      <Loader2 className="animate-spin w-4 h-4 mr-2" />
-                      Saving...
-                    </div>
-                  ) : editingTransfer ? (
-                    "Update Status"
-                  ) : (
-                    "Create Transfer"
-                  )}
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                {creating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    {editingTransfer ? "Updating..." : "Creating..."}
+                  </>
+                ) : editingTransfer ? (
+                  "Update Transfer"
+                ) : (
+                  "Create Transfer"
+                )}
               </Button>
             </div>
           </form>
         </Modal>
 
+        {/* Delete Confirmation Modal */}
         <Modal
           isOpen={deletingId !== null}
           onClose={() => setDeletingId(null)}
-          title="Delete Transfer?"
+          title="Archive Transfer"
         >
-          <div className="flex flex-col items-center justify-center p-4">
-            <Trash2 className="w-10 h-10 text-red-500 mb-4" />
-            <p className="mb-4 text-center text-gray-700">
-              Are you sure you want to delete this transfer? This action cannot
-              be undone.
+          <div className="space-y-4">
+            <p className="text-gray-600">
+              Are you sure you want to archive this transfer? This will hide it
+              from the main view but keep it in the system for record-keeping.
             </p>
-            <div className="flex space-x-4">
-              <Button variant="outline" onClick={() => setDeletingId(null)}>
+            <div className="flex justify-end gap-3">
+              <Button
+                onClick={() => setDeletingId(null)}
+                className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
                 Cancel
               </Button>
-              <Button variant="danger" onClick={confirmDelete}>
-                Delete
+              <Button
+                onClick={confirmDelete}
+                className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white"
+              >
+                Archive
               </Button>
             </div>
           </div>

@@ -83,6 +83,14 @@ export default function ProfilePage() {
             Personal Information
           </h2>
           <div className="space-y-4">
+          <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Full Names
+              </label>
+              <p className="text-gray-900">
+                {getDisplayName()}
+              </p>
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Email Address

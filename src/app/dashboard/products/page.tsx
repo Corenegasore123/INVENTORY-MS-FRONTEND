@@ -13,13 +13,23 @@ import Modal from "@/components/ui/Modal";
 import Toast from "@/components/ui/Toast";
 import { useToast } from "@/hooks/useToast";
 import { useRecentActivity } from "@/hooks/useRecentActivity";
-import { Plus, Edit, Trash2, Grid, List, Loader2 } from "lucide-react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Grid,
+  List,
+  Loader2,
+  Search,
+  Archive,
+} from "lucide-react";
 
 export default function ProductsPage() {
   const router = useRouter();
   const { toast, showToast, hideToast } = useToast();
   const { addActivity } = useRecentActivity();
   const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [inventories, setInventories] = useState<Inventory[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -36,6 +46,12 @@ export default function ProductsPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
 
   useEffect(() => {
     fetchData();
@@ -43,17 +59,57 @@ export default function ProductsPage() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    // Filter products based on search query
+    const filtered = products.filter(
+      (product) =>
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        getInventoryName(product.inventoryId)
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase())
+    );
+    setFilteredProducts(filtered);
+    setCurrentPage(1); // Reset to first page when search changes
+  }, [searchQuery, products]);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentProducts = filteredProducts.slice(startIndex, endIndex);
+
   const fetchData = async () => {
+    setLoading(true);
     try {
       const [productsData, inventoriesData] = await Promise.all([
-        apiClient.getProducts(),
-        apiClient.getInventories(),
+        apiClient.getProducts().catch((error) => {
+          console.error("Failed to fetch products:", error);
+          showToast("Failed to load products. Please try again.", "error");
+          return [];
+        }),
+        apiClient.getAllInventories().catch((error) => {
+          console.error("Failed to fetch inventories:", error);
+          showToast(
+            "Failed to load inventory data. Some features may be limited.",
+            "error"
+          );
+          return [];
+        }),
       ]);
-      setProducts(productsData);
-      setInventories(inventoriesData);
+
+      if (productsData) {
+        setProducts(productsData);
+      }
+      if (inventoriesData) {
+        setInventories(inventoriesData);
+      }
     } catch (error) {
       console.error("Failed to fetch data:", error);
-      showToast("Failed to load data", "error");
+      showToast(
+        "Failed to load data. Please check your connection and try again.",
+        "error"
+      );
     } finally {
       setLoading(false);
     }
@@ -99,7 +155,7 @@ export default function ProductsPage() {
             inventoryId: 0,
             minimumStockLevel: 10,
           });
-          fetchData();
+          await fetchData();
         }
       } else {
         const newProduct = await apiClient.createProduct(formData);
@@ -127,7 +183,7 @@ export default function ProductsPage() {
             inventoryId: 0,
             minimumStockLevel: 10,
           });
-          fetchData();
+          await fetchData();
         }
       }
     } catch (error: any) {
@@ -154,22 +210,19 @@ export default function ProductsPage() {
   };
 
   const handleDelete = async (id: number) => {
-    setDeletingId(id);
+    try {
+      await apiClient.deleteProduct(id);
+      showToast("Product deleted successfully!", "success");
+      await fetchData();
+      setShowDeleteModal(false);
+    } catch (error) {
+      console.error("Failed to delete product:", error);
+      showToast("Failed to delete product", "error");
+    }
   };
 
-  const confirmDelete = async () => {
-    if (deletingId !== null) {
-      try {
-        await apiClient.deleteProduct(deletingId);
-        showToast("Product deleted successfully!", "success");
-        fetchData();
-      } catch (error) {
-        console.error("Failed to delete product:", error);
-        showToast("Failed to delete product", "error");
-      } finally {
-        setDeletingId(null);
-      }
-    }
+  const handleViewDetails = (product: Product) => {
+    router.push(`/dashboard/products/${product.id}`);
   };
 
   const openCreateModal = () => {
@@ -210,15 +263,32 @@ export default function ProductsPage() {
         onClose={hideToast}
       />
 
-      <div className="space-y-6">
+      <div key={products.length} className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">My Products</h1>
             <p className="text-gray-600 mt-1">
               Manage your product catalog and track inventory levels
             </p>
+            <div className="mt-2 flex items-center space-x-4">
+              <div className="bg-blue-50 px-4 py-2 rounded-lg">
+                <p className="text-sm text-blue-600 font-medium">Total Value</p>
+                <p className="text-2xl font-bold text-blue-700">
+                  $
+                  {products
+                    .reduce(
+                      (sum, product) => sum + product.price * product.quantity,
+                      0
+                    )
+                    .toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="flex space-x-4">
+          <div className="flex items-center space-x-4">
             <div className="flex bg-gray-100 rounded-lg p-1 border border-gray-200">
               <button
                 onClick={() => setViewMode("grid")}
@@ -247,6 +317,14 @@ export default function ProductsPage() {
                 </div>
               </button>
             </div>
+            <Button
+              variant="outline"
+              onClick={() => router.push("/dashboard/products/archived")}
+              className="flex items-center space-x-2"
+            >
+              <Archive className="w-4 h-4" />
+              <span>Archived Products</span>
+            </Button>
             <Button onClick={openCreateModal}>
               <div className="flex items-center space-x-2">
                 <Plus className="w-4 h-4" />
@@ -256,9 +334,23 @@ export default function ProductsPage() {
           </div>
         </div>
 
+        {/* Search Bar */}
+        <div className="relative max-w-2xl mx-auto mb-8">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+            placeholder="Search products by name, description, or inventory..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+
         {viewMode === "grid" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map((product) => (
+            {currentProducts.map((product) => (
               <Card key={product.id} hover>
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center space-x-3">
@@ -271,7 +363,13 @@ export default function ProductsPage() {
                       <h3 className="text-lg font-semibold text-gray-900">
                         {product.name}
                       </h3>
-                      <p className="text-gray-600">${product.price}</p>
+                      <p className="text-gray-600">
+                        $
+                        {product.price.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </p>
                     </div>
                   </div>
                   <div className="flex space-x-2">
@@ -283,7 +381,10 @@ export default function ProductsPage() {
                       <Edit className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => handleDelete(product.id)}
+                      onClick={() => {
+                        setSelectedProduct(product);
+                        setShowDeleteModal(true);
+                      }}
                       className="text-red-600 hover:text-red-800 p-1 rounded transition-colors"
                       title="Delete product"
                     >
@@ -302,7 +403,7 @@ export default function ProductsPage() {
                         : "bg-green-100 text-green-800"
                     }`}
                   >
-                    {product.quantity} in stock
+                    {product.quantity.toLocaleString()} units
                   </span>
                   <span className="text-gray-500 bg-gray-100 px-2 py-1 rounded text-xs">
                     {getInventoryName(product.inventoryId)}
@@ -312,9 +413,7 @@ export default function ProductsPage() {
                   variant="outline"
                   size="sm"
                   className="w-full"
-                  onClick={() =>
-                    router.push(`/dashboard/products/${product.id}`)
-                  }
+                  onClick={() => handleViewDetails(product)}
                 >
                   View Details
                 </Button>
@@ -351,7 +450,7 @@ export default function ProductsPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {products.map((product) => (
+                  {currentProducts.map((product) => (
                     <tr key={product.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center space-x-3">
@@ -364,14 +463,23 @@ export default function ProductsPage() {
                             <div className="text-sm font-medium text-gray-900">
                               {product.name}
                             </div>
-                            <div className="text-sm text-gray-500 truncate max-w-xs">
+                            <div
+                              className="text-sm text-gray-500 truncate max-w-[200px]"
+                              title={product.description}
+                            >
                               {product.description}
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                        ${product.price}
+                        <span className="text-gray-900">
+                          $
+                          {product.price.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
@@ -381,7 +489,7 @@ export default function ProductsPage() {
                               : "bg-green-100 text-green-800"
                           }`}
                         >
-                          {product.quantity} units
+                          {product.quantity.toLocaleString()} units
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -395,21 +503,16 @@ export default function ProductsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                         <button
-                          onClick={() =>
-                            router.push(`/dashboard/products/${product.id}`)
-                          }
+                          onClick={() => handleViewDetails(product)}
                           className="text-blue-600 hover:text-blue-900 transition-colors"
                         >
                           View
                         </button>
                         <button
-                          onClick={() => handleEdit(product)}
-                          className="text-blue-600 hover:text-blue-900 transition-colors"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(product.id)}
+                          onClick={() => {
+                            setSelectedProduct(product);
+                            setShowDeleteModal(true);
+                          }}
                           className="text-red-600 hover:text-red-900 transition-colors"
                         >
                           Delete
@@ -423,19 +526,73 @@ export default function ProductsPage() {
           </Card>
         )}
 
-        {products.length === 0 && (
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-8 flex flex-col items-center space-y-4">
+            <div className="text-sm text-gray-700 mb-2">
+              Showing {startIndex + 1} to{" "}
+              {Math.min(endIndex, filteredProducts.length)} of{" "}
+              {filteredProducts.length} products
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </Button>
+              <div className="flex items-center space-x-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        currentPage === page
+                          ? "bg-blue-600 text-white"
+                          : "text-gray-600 hover:bg-gray-100"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  )
+                )}
+              </div>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {filteredProducts.length === 0 && (
           <Card>
             <div className="text-center py-12">
               <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-4xl">🏷️</span>
+                <span className="text-4xl">🔍</span>
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 No products found
               </h3>
               <p className="text-gray-500 mb-6">
-                Start building your product catalog
+                {searchQuery
+                  ? "Try adjusting your search terms"
+                  : "Start building your product catalog"}
               </p>
-              <Button onClick={openCreateModal}>Add your first product</Button>
+              {!searchQuery && (
+                <Button onClick={openCreateModal}>
+                  Add your first product
+                </Button>
+              )}
             </div>
           </Card>
         )}
@@ -459,26 +616,32 @@ export default function ProductsPage() {
               label="Price"
               type="number"
               step="0.01"
-              value={formData.price}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  price: Number.parseFloat(e.target.value),
-                })
-              }
+              value={formData.price.toString()}
+              onChange={(e) => {
+                const value = parseFloat(e.target.value);
+                if (!isNaN(value)) {
+                  setFormData({
+                    ...formData,
+                    price: value,
+                  });
+                }
+              }}
               placeholder="0.00"
               required
             />
             <Input
               label="Quantity"
               type="number"
-              value={formData.quantity}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  quantity: Number.parseInt(e.target.value),
-                })
-              }
+              value={formData.quantity.toString()}
+              onChange={(e) => {
+                const value = parseInt(e.target.value);
+                if (!isNaN(value)) {
+                  setFormData({
+                    ...formData,
+                    quantity: value,
+                  });
+                }
+              }}
               placeholder="0"
               required
             />
@@ -568,25 +731,100 @@ export default function ProductsPage() {
         </Modal>
 
         <Modal
-          isOpen={deletingId !== null}
-          onClose={() => setDeletingId(null)}
-          title="Delete Product?"
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          title="Delete Product"
         >
-          <div className="flex flex-col items-center justify-center p-4">
-            <Trash2 className="w-10 h-10 text-red-500 mb-4" />
-            <p className="mb-4 text-center text-gray-700">
+          <div className="mt-2">
+            <p className="text-sm text-gray-500">
               Are you sure you want to delete this product? This action cannot
               be undone.
             </p>
-            <div className="flex space-x-4">
-              <Button variant="outline" onClick={() => setDeletingId(null)}>
-                Cancel
-              </Button>
-              <Button variant="danger" onClick={confirmDelete}>
-                Delete
-              </Button>
-            </div>
           </div>
+
+          <div className="mt-4 flex justify-end space-x-3">
+            <button
+              type="button"
+              className="inline-flex justify-center rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+              onClick={() =>
+                selectedProduct && handleDelete(selectedProduct.id)
+              }
+            >
+              Delete
+            </button>
+            <button
+              type="button"
+              className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+              onClick={() => setShowDeleteModal(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={showDetailsModal}
+          onClose={() => setShowDetailsModal(false)}
+          title="Product Details"
+        >
+          {selectedProduct && (
+            <div className="mt-2 space-y-4">
+              <div>
+                <h4 className="text-sm font-medium text-gray-500">Name</h4>
+                <p className="mt-1 text-sm text-gray-900">
+                  {selectedProduct.name}
+                </p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-500">
+                  Description
+                </h4>
+                <p className="mt-1 text-sm text-gray-900">
+                  {selectedProduct.description}
+                </p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-500">Price</h4>
+                <p className="mt-1 text-sm text-gray-900">
+                  $
+                  {selectedProduct.price.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-500">Quantity</h4>
+                <p className="mt-1 text-sm text-gray-900">
+                  {selectedProduct.quantity.toLocaleString()} units
+                </p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-500">
+                  Minimum Stock Level
+                </h4>
+                <p className="mt-1 text-sm text-gray-900">
+                  {selectedProduct.minimumStockLevel}
+                </p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-500">
+                  Created At
+                </h4>
+                <p className="mt-1 text-sm text-gray-900">
+                  {new Date(selectedProduct.createdAt).toLocaleString()}
+                </p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-500">
+                  Last Updated
+                </h4>
+                <p className="mt-1 text-sm text-gray-900">
+                  {new Date(selectedProduct.updatedAt).toLocaleString()}
+                </p>
+              </div>
+            </div>
+          )}
         </Modal>
       </div>
     </>

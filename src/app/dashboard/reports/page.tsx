@@ -24,7 +24,45 @@ import {
 } from "recharts";
 import { Download } from "lucide-react";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+
+// Register the plugin
+// (This is enough for modern jsPDF + jspdf-autotable)
+
+function downloadCSV(data: any[], filename: string) {
+  if (!data.length) return;
+  const csvRows = [];
+  const headers = Object.keys(data[0]);
+  csvRows.push(headers.join(","));
+  for (const row of data) {
+    const values = headers.map((header) => JSON.stringify(row[header] ?? ""));
+    csvRows.push(values.join(","));
+  }
+  const csvString = csvRows.join("\n");
+  const blob = new Blob([csvString], { type: "text/csv" });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  window.URL.revokeObjectURL(url);
+}
+
+function downloadExcel(data: any[], filename: string) {
+  if (!data.length) return;
+  const worksheet = XLSX.utils.json_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
+  const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+  const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+  saveAs(blob, filename);
+}
+
+function printReport() {
+  window.print();
+}
 
 export default function ReportsPage() {
   const { toast, showToast, hideToast } = useToast();
@@ -50,15 +88,27 @@ export default function ReportsPage() {
     setProductReport([]);
     setInventoryReport([]);
     try {
+      // Convert dates to ISO 8601 with time if both are provided
+      const formattedStartDate = startDate ? `${startDate}T00:00:00` : "";
+      const formattedEndDate = endDate ? `${endDate}T23:59:59` : "";
       const [stockData, productData, inventoryData] = await Promise.all([
         startDate && endDate
-          ? apiClient.getStockReportByDateRange(startDate, endDate)
+          ? apiClient.getStockReportByDateRange(
+              formattedStartDate,
+              formattedEndDate
+            )
           : apiClient.getStockReport(),
         startDate && endDate
-          ? apiClient.getProductReportByDateRange(startDate, endDate)
+          ? apiClient.getProductReportByDateRange(
+              formattedStartDate,
+              formattedEndDate
+            )
           : apiClient.getProductReport(),
         startDate && endDate
-          ? apiClient.getInventoryReportByDateRange(startDate, endDate)
+          ? apiClient.getInventoryReportByDateRange(
+              formattedStartDate,
+              formattedEndDate
+            )
           : apiClient.getInventoryReport(),
       ]);
       setStockReport(stockData);
@@ -109,9 +159,7 @@ export default function ReportsPage() {
 
       const overviewData = [
         ["Total Products", stockReport.totalProducts.toString()],
-        ["Total Value", `$${stockReport.totalValue.toFixed(2)}`],
-        ["Low Stock Items", stockReport.lowStockProducts.length.toString()],
-        ["Out of Stock", stockReport.outOfStockProducts.length.toString()],
+        ["Total Low Stock Items", stockReport.totalLowStockItems.toString()],
       ];
 
       (doc as any).autoTable({
@@ -132,13 +180,23 @@ export default function ReportsPage() {
 
         const lowStockData = stockReport.lowStockProducts.map((product) => [
           product.name,
-          product.quantity.toString(),
-          `$${product.price.toFixed(2)}`,
+          product.currentQuantity.toString(),
+          product.minimumStockLevel.toString(),
+          product.inventoryName,
+          product.location,
         ]);
 
         (doc as any).autoTable({
           startY: yOffset,
-          head: [["Product", "Current Stock", "Price"]],
+          head: [
+            [
+              "Product",
+              "Current Stock",
+              "Minimum Level",
+              "Inventory",
+              "Location",
+            ],
+          ],
           body: lowStockData,
           theme: "grid",
           headStyles: { fillColor: [59, 130, 246] },
@@ -154,15 +212,26 @@ export default function ReportsPage() {
         yOffset += 10;
 
         const productData = productReport.map((product) => [
-          product.productName,
-          product.totalQuantity.toString(),
-          `$${product.totalValue.toFixed(2)}`,
-          `$${product.averagePrice.toFixed(2)}`,
+          product.name,
+          product.quantity.toString(),
+          `$${product.price.toFixed(2)}`,
+          product.minimumStockLevel.toString(),
+          product.inventoryName,
+          product.location,
         ]);
 
         (doc as any).autoTable({
           startY: yOffset,
-          head: [["Product", "Total Quantity", "Total Value", "Average Price"]],
+          head: [
+            [
+              "Product",
+              "Quantity",
+              "Price",
+              "Minimum Level",
+              "Inventory",
+              "Location",
+            ],
+          ],
           body: productData,
           theme: "grid",
           headStyles: { fillColor: [59, 130, 246] },
@@ -178,21 +247,17 @@ export default function ReportsPage() {
         yOffset += 10;
 
         const inventoryData = inventoryReport.map((inventory) => [
-          inventory.inventoryName,
+          inventory.name,
+          inventory.location,
           inventory.totalProducts.toString(),
-          `$${inventory.totalValue.toFixed(2)}`,
-          `$${inventory.averageProductValue.toFixed(2)}`,
+          `$${inventory.totalNetPrice.toFixed(2)}`,
+          inventory.userEmail,
         ]);
 
         (doc as any).autoTable({
           startY: yOffset,
           head: [
-            [
-              "Inventory",
-              "Total Products",
-              "Total Value",
-              "Average Product Value",
-            ],
+            ["Inventory", "Location", "Total Products", "Total Value", "Owner"],
           ],
           body: inventoryData,
           theme: "grid",
@@ -234,194 +299,287 @@ export default function ReportsPage() {
         onClose={hideToast}
       />
 
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
+      <div className="space-y-6 p-6">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+              Reports
+            </h1>
             <p className="text-gray-600 mt-1">
-              View inventory and product reports
+              View inventory and product analytics
             </p>
           </div>
-          <div className="flex space-x-4">
-            <Input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              label="Start Date"
-            />
-            <Input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              label="End Date"
-            />
-            <Button onClick={fetchReports} disabled={loading}>
-              {loading ? "Loading..." : "Generate Report"}
-            </Button>
-            <Button
-              onClick={generatePDF}
-              disabled={loading || downloading || !reportGenerated}
-              className="flex items-center space-x-2"
-            >
-              <Download className="w-4 h-4" />
-              <span>{downloading ? "Generating..." : "Download PDF"}</span>
-            </Button>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex gap-3">
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                label="Start Date"
+                className="min-w-[160px]"
+              />
+              <Input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                label="End Date"
+                className="min-w-[160px]"
+              />
+            </div>
+            <div className="flex gap-3">
+              <Button
+                onClick={fetchReports}
+                disabled={loading}
+                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-sm hover:shadow-md transition-all duration-200"
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Loading...
+                  </>
+                ) : (
+                  "Generate Report"
+                )}
+              </Button>
+              <Button
+                onClick={generatePDF}
+                disabled={loading || downloading || !reportGenerated}
+                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-sm hover:shadow-md transition-all duration-200"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                {downloading ? "Generating..." : "Download PDF"}
+              </Button>
+            </div>
           </div>
         </div>
 
+        {/* Export Buttons */}
+        <div className="flex flex-wrap gap-3 mb-4">
+          <Button
+            onClick={() => downloadCSV(productReport, "product-report.csv")}
+            className="bg-blue-500 text-white"
+          >
+            Download CSV
+          </Button>
+          <Button
+            onClick={() => downloadExcel(productReport, "product-report.xlsx")}
+            className="bg-green-600 text-white"
+          >
+            Download Excel
+          </Button>
+          <Button onClick={printReport} className="bg-gray-600 text-white">
+            Print / Save as PDF
+          </Button>
+        </div>
+
         {reportGenerated && stockReport && (
-          <Card>
-            <h2 className="text-xl font-semibold mb-4">Stock Overview</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-blue-600">
-                  Total Products
-                </h3>
-                <p className="text-2xl font-bold text-blue-700">
-                  {stockReport.totalProducts}
-                </p>
-              </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-green-600">
-                  Total Value
-                </h3>
-                <p className="text-2xl font-bold text-green-700">
-                  ${stockReport.totalValue.toFixed(2)}
-                </p>
-              </div>
-              <div className="bg-yellow-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-yellow-600">
-                  Low Stock Items
-                </h3>
-                <p className="text-2xl font-bold text-yellow-700">
-                  {stockReport.lowStockProducts.length}
-                </p>
-              </div>
-              <div className="bg-red-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-red-600">
-                  Out of Stock
-                </h3>
-                <p className="text-2xl font-bold text-red-700">
-                  {stockReport.outOfStockProducts.length}
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              {stockReport.lowStockProducts.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-medium mb-2">
-                    Low Stock Products
+          <Card className="shadow-sm hover:shadow-md transition-all duration-200">
+            <div className="p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                Stock Overview
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl shadow-sm">
+                  <h3 className="text-sm font-medium text-blue-600 mb-2">
+                    Total Products
                   </h3>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                            Product
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                            Current Stock
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                            Price
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {stockReport.lowStockProducts.map((product) => (
-                          <tr key={product.id}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              {product.name}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {product.quantity}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              ${product.price}
-                            </td>
+                  <p className="text-3xl font-bold text-blue-700">
+                    {stockReport.totalProducts}
+                  </p>
+                </div>
+                <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-6 rounded-xl shadow-sm">
+                  <h3 className="text-sm font-medium text-yellow-600 mb-2">
+                    Low Stock Items
+                  </h3>
+                  <p className="text-3xl font-bold text-yellow-700">
+                    {stockReport.totalLowStockItems}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-8">
+                {stockReport.lowStockProducts.length > 0 && (
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                      Low Stock Products
+                    </h3>
+                    <div className="overflow-x-auto rounded-lg border border-gray-200">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Product
+                            </th>
+                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Current Stock
+                            </th>
+                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Minimum Level
+                            </th>
+                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Inventory
+                            </th>
+                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Location
+                            </th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {stockReport.lowStockProducts.map((product) => (
+                            <tr
+                              key={product.id}
+                              className="hover:bg-gray-50 transition-colors"
+                            >
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {product.name}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {product.currentQuantity}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {product.minimumStockLevel}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {product.inventoryName}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {product.location}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {productReport.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-medium mb-4">
-                    Product Distribution
-                  </h3>
-                  <div className="h-96">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={productReport}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="productName" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar
-                          dataKey="totalQuantity"
-                          name="Quantity"
-                          fill="#3B82F6"
-                        />
-                        <Bar
-                          dataKey="totalValue"
-                          name="Value ($)"
-                          fill="#10B981"
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
+                {productReport.length > 0 && (
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                      Product Distribution
+                    </h3>
+                    <div className="bg-white p-6 rounded-lg border border-gray-200">
+                      <div className="h-96">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={productReport}>
+                            <CartesianGrid
+                              strokeDasharray="3 3"
+                              stroke="#E5E7EB"
+                            />
+                            <XAxis dataKey="name" stroke="#6B7280" />
+                            <YAxis stroke="#6B7280" />
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: "white",
+                                border: "1px solid #E5E7EB",
+                                borderRadius: "0.5rem",
+                                boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                              }}
+                            />
+                            <Legend />
+                            <Bar
+                              dataKey="quantity"
+                              name="Quantity"
+                              fill="#3B82F6"
+                              radius={[4, 4, 0, 0]}
+                            />
+                            <Bar
+                              dataKey="price"
+                              name="Price ($)"
+                              fill="#10B981"
+                              radius={[4, 4, 0, 0]}
+                            />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {inventoryReport.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-medium mb-4">
-                    Inventory Distribution
-                  </h3>
-                  <div className="h-96">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={inventoryReport}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="inventoryName" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar
-                          dataKey="totalProducts"
-                          name="Products"
-                          fill="#6366F1"
-                        />
-                        <Bar
-                          dataKey="totalValue"
-                          name="Value ($)"
-                          fill="#F59E0B"
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
+                {inventoryReport.length > 0 && (
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                      Inventory Distribution
+                    </h3>
+                    <div className="bg-white p-6 rounded-lg border border-gray-200">
+                      <div className="h-96">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={inventoryReport}>
+                            <CartesianGrid
+                              strokeDasharray="3 3"
+                              stroke="#E5E7EB"
+                            />
+                            <XAxis dataKey="name" stroke="#6B7280" />
+                            <YAxis stroke="#6B7280" />
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: "white",
+                                border: "1px solid #E5E7EB",
+                                borderRadius: "0.5rem",
+                                boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                              }}
+                            />
+                            <Legend />
+                            <Bar
+                              dataKey="totalProducts"
+                              name="Products"
+                              fill="#6366F1"
+                              radius={[4, 4, 0, 0]}
+                            />
+                            <Bar
+                              dataKey="totalNetPrice"
+                              name="Value ($)"
+                              fill="#F59E0B"
+                              radius={[4, 4, 0, 0]}
+                            />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </Card>
         )}
 
         {!loading && !reportGenerated && (
-          <Card>
-            <div className="text-center py-12">
-              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Card className="shadow-sm hover:shadow-md transition-all duration-200">
+            <div className="text-center py-16">
+              <div className="w-24 h-24 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-4xl">📊</span>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
                 Generate a Report
               </h3>
-              <p className="text-gray-500 mb-6">
-                Select a date range and click "Generate Report" to view
-                analytics.
+              <p className="text-gray-500 mb-8 max-w-md mx-auto">
+                Select a date range and click "Generate Report" to view detailed
+                analytics and insights about your inventory.
               </p>
+              <div className="flex justify-center gap-3">
+                <Input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  label="Start Date"
+                  className="min-w-[160px]"
+                />
+                <Input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  label="End Date"
+                  className="min-w-[160px]"
+                />
+                <Button
+                  onClick={fetchReports}
+                  disabled={loading}
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-sm hover:shadow-md transition-all duration-200"
+                >
+                  Generate Report
+                </Button>
+              </div>
             </div>
           </Card>
         )}

@@ -12,18 +12,22 @@ import {
   AlertTriangle,
   ClipboardList,
   ArrowRight,
+  BarChart3,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function UserDashboard() {
   const [stats, setStats] = useState<DashboardStats>({
     totalInventories: 0,
     totalProducts: 0,
     lowStockProducts: 0,
+    totalValue: 0,
   });
   const [recentInventories, setRecentInventories] = useState<Inventory[]>([]);
   const [recentProducts, setRecentProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const { activities } = useRecentActivity();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -34,11 +38,16 @@ export default function UserDashboard() {
         ]);
 
         const lowStock = products.filter((p) => p.quantity < 10).length;
+        const totalValue = products.reduce(
+          (sum, p) => sum + p.price * p.quantity,
+          0
+        );
 
         setStats({
           totalInventories: inventories.length,
           totalProducts: products.length,
           lowStockProducts: lowStock,
+          totalValue: totalValue,
         });
 
         setRecentInventories(inventories.slice(0, 5));
@@ -71,73 +80,91 @@ export default function UserDashboard() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white">
-        <h1 className="text-3xl font-bold mb-2">Welcome back! 👋</h1>
-        <p className="text-blue-100 text-lg">
-          Here's what's happening with your inventory today.
-        </p>
+      <div className="bg-gradient-to-r from-blue-600 via-blue-500 to-purple-600 rounded-2xl p-8 text-white shadow-lg">
+        <div className="max-w-3xl">
+          <h1 className="text-4xl font-bold mb-3">Welcome back! 👋</h1>
+          <p className="text-blue-100 text-lg font-medium">
+            Here's what's happening with your inventory today.
+          </p>
+        </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card
-          hover
-          className="bg-gradient-to-br from-green-50 to-green-100 border-green-200"
-        >
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 shadow-sm hover:shadow-md transition-all duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-green-700 mb-1">
+              <p className="text-sm font-medium text-blue-700 mb-1">
                 My Inventories
               </p>
-              <p className="text-3xl font-bold text-green-900">
-                {stats.totalInventories}
+              <p className="text-3xl font-bold text-blue-900">
+                {stats.totalInventories.toLocaleString()}
               </p>
-              <p className="text-sm text-green-600 mt-1">Active locations</p>
+              <p className="text-sm text-blue-600 mt-1">Active locations</p>
             </div>
-            <div className="w-16 h-16 bg-green-500 rounded-2xl flex items-center justify-center">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
               <Package className="text-white w-8 h-8" />
             </div>
           </div>
         </Card>
 
-        <Card
-          hover
-          className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200"
-        >
+        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 shadow-sm hover:shadow-md transition-all duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-blue-700 mb-1">
+              <p className="text-sm font-medium text-green-700 mb-1">
                 Total Products
               </p>
-              <p className="text-3xl font-bold text-blue-900">
-                {stats.totalProducts}
+              <p className="text-3xl font-bold text-green-900">
+                {stats.totalProducts.toLocaleString()}
               </p>
-              <p className="text-sm text-blue-600 mt-1">Items tracked</p>
+              <p className="text-sm text-green-600 mt-1">Items tracked</p>
             </div>
-            <div className="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center">
+            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center shadow-sm">
               <Tag className="text-white w-8 h-8" />
             </div>
           </div>
         </Card>
 
-        <Card
-          hover
-          className="bg-gradient-to-br from-red-50 to-red-100 border-red-200"
-        >
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 shadow-sm hover:shadow-md transition-all duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-red-700 mb-1">
-                Low Stock Alert
+              <p className="text-sm font-medium text-purple-700 mb-1">
+                Total Value
               </p>
-              <p className="text-3xl font-bold text-red-900">
-                {stats.lowStockProducts}
+              <p className="text-2xl font-bold text-purple-900">
+                $
+                {stats.totalValue.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </p>
-              <p className="text-sm text-red-600 mt-1">Items need restocking</p>
+              <p className="text-sm text-purple-600 mt-1">Inventory worth</p>
             </div>
-            <div className="w-16 h-16 bg-red-500 rounded-2xl flex items-center justify-center">
-              <AlertTriangle className="text-white w-8 h-8" />
+          </div>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-red-50 to-red-100 border-red-200 shadow-sm hover:shadow-md transition-all duration-200">
+          <div
+            className="cursor-pointer"
+            onClick={() => router.push("/dashboard/low-stock")}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-red-700 mb-1">
+                  Low Stock Alert
+                </p>
+                <p className="text-3xl font-bold text-red-900">
+                  {stats.lowStockProducts.toLocaleString()}
+                </p>
+                <p className="text-sm text-red-600 mt-1">
+                  Items need restocking
+                </p>
+              </div>
+              <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center shadow-sm">
+                <AlertTriangle className="text-white w-8 h-8" />
+              </div>
             </div>
           </div>
         </Card>
@@ -145,10 +172,17 @@ export default function UserDashboard() {
 
       {/* Charts and Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <SimpleChart data={chartData} title="Inventory Overview" />
+        <Card className="shadow-sm hover:shadow-md transition-all duration-200">
+          <h3 className="text-lg font-semibold mb-6 text-gray-900 flex items-center">
+            <BarChart3 className="w-5 h-5 mr-2 text-blue-600" />
+            Inventory Overview
+          </h3>
+          <SimpleChart data={chartData} title="Inventory Distribution" />
+        </Card>
 
-        <Card>
-          <h3 className="text-lg font-semibold mb-6 text-gray-900">
+        <Card className="shadow-sm hover:shadow-md transition-all duration-200">
+          <h3 className="text-lg font-semibold mb-6 text-gray-900 flex items-center">
+            <ClipboardList className="w-5 h-5 mr-2 text-blue-600" />
             Recent Activity
           </h3>
           <div className="space-y-4">
@@ -156,21 +190,21 @@ export default function UserDashboard() {
               activities.slice(0, 5).map((activity) => (
                 <div
                   key={activity.id}
-                  className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg"
+                  className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors duration-200"
                 >
                   <div
-                    className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-sm ${
                       activity.color === "green"
-                        ? "bg-green-100"
+                        ? "bg-gradient-to-br from-green-500 to-green-600"
                         : activity.color === "blue"
-                        ? "bg-blue-100"
-                        : "bg-gray-100"
+                        ? "bg-gradient-to-br from-blue-500 to-blue-600"
+                        : "bg-gradient-to-br from-gray-500 to-gray-600"
                     }`}
                   >
-                    <ClipboardList className="w-5 h-5 text-gray-500" />
+                    <ClipboardList className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium text-gray-900">
+                    <p className="font-semibold text-gray-900">
                       {activity.title}
                     </p>
                     <p className="text-sm text-gray-600">
@@ -180,12 +214,12 @@ export default function UserDashboard() {
                 </div>
               ))
             ) : (
-              <div className="text-center py-8">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <ClipboardList className="w-8 h-8 text-gray-400" />
+              <div className="text-center py-12">
+                <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+                  <ClipboardList className="w-10 h-10 text-gray-400" />
                 </div>
-                <p className="text-gray-500">No recent activity</p>
-                <p className="text-sm text-gray-400 mt-1">
+                <p className="text-gray-600 font-medium">No recent activity</p>
+                <p className="text-sm text-gray-500 mt-1">
                   Start by creating inventories and products
                 </p>
               </div>
@@ -195,61 +229,44 @@ export default function UserDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <Card>
-        <h3 className="text-lg font-semibold mb-6 text-gray-900">
+      <Card className="shadow-sm hover:shadow-md transition-all duration-200">
+        <h3 className="text-lg font-semibold mb-6 text-gray-900 flex items-center">
+          <ArrowRight className="w-5 h-5 mr-2 text-blue-600" />
           Quick Actions
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <a
             href="/dashboard/inventories"
-            className="flex items-center p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg hover:from-blue-100 hover:to-blue-200 transition-all group"
+            className="flex items-center p-5 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl hover:from-blue-100 hover:to-blue-200 transition-all duration-200 group shadow-sm hover:shadow-md"
           >
-            <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-4">
-              <Package className="text-white w-5 h-5" />
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-4 shadow-sm">
+              <Package className="text-white w-6 h-6" />
             </div>
             <div className="flex-1">
-              <p className="font-medium text-gray-900">Manage Inventories</p>
+              <p className="font-semibold text-gray-900">Manage Inventories</p>
               <p className="text-sm text-gray-600">
                 Add, edit, or view your inventories
               </p>
             </div>
-            <svg className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors">
-              <ArrowRight />
-            </svg>
+            <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
           </a>
 
           <a
             href="/dashboard/products"
-            className="flex items-center p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg hover:from-green-100 hover:to-green-200 transition-all group"
+            className="flex items-center p-5 bg-gradient-to-r from-green-50 to-green-100 rounded-xl hover:from-green-100 hover:to-green-200 transition-all duration-200 group shadow-sm hover:shadow-md"
           >
-            <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mr-4">
-              <Tag className="text-white w-5 h-5" />
+            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mr-4 shadow-sm">
+              <Tag className="text-white w-6 h-6" />
             </div>
             <div className="flex-1">
-              <p className="font-medium text-gray-900">Manage Products</p>
+              <p className="font-semibold text-gray-900">Manage Products</p>
               <p className="text-sm text-gray-600">
                 Add, edit, or view your products
               </p>
             </div>
-            <svg className="w-5 h-5 text-gray-400 group-hover:text-green-600 transition-colors">
-              <ArrowRight />
-            </svg>
+            <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-green-600 transition-colors" />
           </a>
         </div>
-
-        {stats.lowStockProducts > 0 && (
-          <div className="mt-4 flex items-center p-4 bg-gradient-to-r from-red-50 to-red-100 rounded-lg">
-            <div className="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center mr-4">
-              <AlertTriangle className="text-white w-5 h-5" />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-gray-900">Low Stock Alert</p>
-              <p className="text-sm text-gray-600">
-                {stats.lowStockProducts} items need restocking
-              </p>
-            </div>
-          </div>
-        )}
       </Card>
 
       {/* Recent Items */}
@@ -259,15 +276,15 @@ export default function UserDashboard() {
             <h3 className="text-lg font-semibold text-gray-900">
               Recent Inventories
             </h3>
-            <a
-              href="/dashboard/inventories"
+            <button
+              onClick={() => router.push("/dashboard/inventories")}
               className="text-blue-600 hover:text-blue-800 text-sm font-medium"
             >
               View all →
-            </a>
+            </button>
           </div>
           <div className="space-y-4">
-            {recentInventories.map((inventory) => (
+            {recentInventories.slice(0, 4).map((inventory) => (
               <div
                 key={inventory.id}
                 className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
@@ -311,15 +328,15 @@ export default function UserDashboard() {
             <h3 className="text-lg font-semibold text-gray-900">
               Recent Products
             </h3>
-            <a
-              href="/dashboard/products"
+            <button
+              onClick={() => router.push("/dashboard/products")}
               className="text-blue-600 hover:text-blue-800 text-sm font-medium"
             >
               View all →
-            </a>
+            </button>
           </div>
           <div className="space-y-4">
-            {recentProducts.map((product) => (
+            {recentProducts.slice(0, 4).map((product) => (
               <div
                 key={product.id}
                 className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"

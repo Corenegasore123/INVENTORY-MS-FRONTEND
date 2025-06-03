@@ -21,9 +21,14 @@ export interface Inventory {
   id: number
   name: string
   location: string
-  products?: Product[]
+  type: "WAREHOUSE" | "STORE" | "DISTRIBUTION_CENTER"
+  capacity: number
+  ownerName: string
+  totalProducts: number
+  capacityUsedPercentage: number
   createdAt: string
   updatedAt: string
+  products?: Product[]
 }
 
 export interface Product {
@@ -53,6 +58,8 @@ export interface UserDTO {
 export interface InventoryDTO {
   name: string
   location: string
+  type: "WAREHOUSE" | "STORE" | "DISTRIBUTION_CENTER"
+  capacity: number
 }
 
 export interface ProductDTO {
@@ -81,11 +88,12 @@ export interface DashboardStats {
   totalProducts: number
   totalUsers?: number
   lowStockProducts: number
+  totalValue: number
 }
 
 export interface RecentActivity {
   id: string
-  type: "inventory_created" | "product_created" | "inventory_updated" | "product_updated" | "transfer_created" | "transfer_completed" | "transfer_cancelled" | "transfer_updated"
+  type: "inventory_created" | "product_created" | "inventory_updated" | "product_updated" | "transfer_created" | "transfer_completed" | "transfer_cancelled" | "transfer_updated" | "product_deleted" | "inventory_deleted" | "product_archived"
   title: string
   description: string
   timestamp: string
@@ -97,8 +105,8 @@ export interface TransferDTO {
   productId: number;
   sourceInventoryId: number;
   destinationInventoryId: number;
-  quantity: number;
-  status: "PENDING" | "COMPLETED" | "CANCELLED";
+  currentQuantity: number;
+  transferQuantity: number;
 }
 
 export interface TransferResponseDTO {
@@ -112,27 +120,55 @@ export interface TransferResponseDTO {
   quantity: number;
   status: "PENDING" | "COMPLETED" | "CANCELLED";
   createdAt: string;
+  archived: boolean;
 }
 
 export interface StockReportDTO {
+  lowStockProducts: LowStockProductDTO[]
+  allProducts: ProductStockDTO[]
+  totalLowStockItems: number
   totalProducts: number
-  totalValue: number
-  lowStockProducts: Product[]
-  outOfStockProducts: Product[]
+}
+
+export interface LowStockProductDTO {
+  id: number
+  name: string
+  currentQuantity: number
+  minimumStockLevel: number
+  inventoryName: string
+  location: string
+}
+
+export interface ProductStockDTO {
+  id: number
+  name: string
+  currentQuantity: number
+  minimumStockLevel: number
+  inventoryName: string
+  location: string
 }
 
 export interface ProductReportDTO {
-  productId: number
-  productName: string
-  totalQuantity: number
-  totalValue: number
-  averagePrice: number
+  id: number
+  name: string
+  price: number
+  quantity: number
+  minimumStockLevel: number
+  description: string
+  inventoryName: string
+  location: string
+  userEmail: string
+  createdAt: string
+  updatedAt: string
 }
 
 export interface InventoryReportDTO {
-  inventoryId: number
-  inventoryName: string
+  id: number
+  name: string
+  location: string
+  userEmail: string
   totalProducts: number
-  totalValue: number
-  averageProductValue: number
+  totalNetPrice: number
+  createdAt: string
+  updatedAt: string
 }

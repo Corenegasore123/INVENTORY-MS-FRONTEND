@@ -21,6 +21,10 @@ export function useToast() {
       type,
       isVisible: true,
     })
+    // Automatically hide the toast after 5 seconds
+    setTimeout(() => {
+      hideToast();
+    }, 5000);
   }
 
   const hideToast = () => {
